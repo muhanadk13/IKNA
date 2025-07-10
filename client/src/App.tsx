@@ -1,8 +1,14 @@
 import { useState } from 'react';
 
+type Rating = 'again' | 'hard' | 'good' | 'easy';
+
 type Flashcard = {
   question: string;
   answer: string;
+  repetitions: number;
+  easeFactor: number;
+  interval: number;
+  dueDate: number;
 };
 
 function App() {
@@ -19,12 +25,14 @@ function App() {
     good: 0,
     easy: 0,
   });
+  const [ratingHistory, setRatingHistory] = useState<Rating[]>([]);
 
   const handleGenerate = async () => {
     setLoading(true);
     setError('');
     setFinished(false);
     setRatings({ again: 0, hard: 0, good: 0, easy: 0 });
+    setRatingHistory([]);
     try {
       const res = await fetch('http://localhost:4000/generate', {
         method: 'POST',
@@ -38,7 +46,15 @@ function App() {
         throw new Error(data.error || 'Something went wrong.');
       }
 
-      setFlashcards(data.flashcards);
+      setFlashcards(
+        data.flashcards.map((c: { question: string; answer: string }) => ({
+          ...c,
+          repetitions: 0,
+          easeFactor: 2.5,
+          interval: 0,
+          dueDate: Date.now(),
+        }))
+      );
       setIndex(0);
       setFlipped(false);
     } catch (err: any) {
@@ -48,8 +64,38 @@ function App() {
     }
   };
 
-  const handleRating = (level: keyof typeof ratings) => {
+  const reviewCard = (card: Flashcard, rating: Rating) => {
+    if (rating === 'again') {
+      card.interval = 1;
+      card.repetitions = 0;
+      card.easeFactor = Math.max(1.3, card.easeFactor - 0.2);
+    } else if (rating === 'hard') {
+      card.interval = Math.max(1, Math.round(card.interval * 1.2));
+      card.easeFactor = Math.max(1.3, card.easeFactor - 0.15);
+    } else if (rating === 'good') {
+      card.repetitions += 1;
+      card.interval = Math.max(1, Math.round(card.interval * card.easeFactor));
+    } else {
+      card.repetitions += 1;
+      card.easeFactor += 0.15;
+      card.interval = Math.max(
+        1,
+        Math.round(card.interval * card.easeFactor * 1.3)
+      );
+    }
+    card.dueDate = Date.now() + card.interval * 24 * 60 * 60 * 1000;
+  };
+
+  const handleRating = (level: Rating) => {
     setRatings((prev) => ({ ...prev, [level]: prev[level] + 1 }));
+    setRatingHistory((prev) => [...prev, level]);
+    setFlashcards((prev) => {
+      const newCards = [...prev];
+      const card = { ...newCards[index] };
+      reviewCard(card, level);
+      newCards[index] = card;
+      return newCards;
+    });
     setFlipped(false);
     if (index < flashcards.length - 1) {
       setIndex(index + 1);
@@ -66,6 +112,7 @@ function App() {
     setError('');
     setFinished(false);
     setRatings({ again: 0, hard: 0, good: 0, easy: 0 });
+    setRatingHistory([]);
   };
 
   return (
@@ -133,11 +180,17 @@ function App() {
         <div style={{ marginTop: '2rem' }}>
           <h2>Rating Summary</h2>
           <ul>
-            <li>Again: {ratings.again}</li>
-            <li>Hard: {ratings.hard}</li>
-            <li>Good: {ratings.good}</li>
-            <li>Easy: {ratings.easy}</li>
+            {ratingHistory.map((r, i) => (
+              <li key={i}>
+                Card {i + 1}: {r.charAt(0).toUpperCase() + r.slice(1)}
+              </li>
+            ))}
           </ul>
+          <p style={{ marginTop: '1rem' }}>
+            Again: {ratings.again} | Hard: {ratings.hard} | Good: {ratings.good}
+            {' '}
+            | Easy: {ratings.easy}
+          </p>
           <button onClick={handleRestart}>Start Over</button>
         </div>
       )}
