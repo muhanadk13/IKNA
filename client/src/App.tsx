@@ -12,10 +12,19 @@ function App() {
   const [flipped, setFlipped] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [finished, setFinished] = useState(false);
+  const [ratings, setRatings] = useState({
+    again: 0,
+    hard: 0,
+    good: 0,
+    easy: 0,
+  });
 
   const handleGenerate = async () => {
     setLoading(true);
     setError('');
+    setFinished(false);
+    setRatings({ again: 0, hard: 0, good: 0, easy: 0 });
     try {
       const res = await fetch('http://localhost:4000/generate', {
         method: 'POST',
@@ -39,10 +48,13 @@ function App() {
     }
   };
 
-  const handleNext = () => {
+  const handleRating = (level: keyof typeof ratings) => {
+    setRatings((prev) => ({ ...prev, [level]: prev[level] + 1 }));
     setFlipped(false);
     if (index < flashcards.length - 1) {
       setIndex(index + 1);
+    } else {
+      setFinished(true);
     }
   };
 
@@ -52,6 +64,8 @@ function App() {
     setIndex(0);
     setFlipped(false);
     setError('');
+    setFinished(false);
+    setRatings({ again: 0, hard: 0, good: 0, easy: 0 });
   };
 
   return (
@@ -78,7 +92,7 @@ function App() {
         </>
       )}
 
-      {flashcards.length > 0 && (
+      {flashcards.length > 0 && !finished && (
         <div style={{ marginTop: '2rem' }}>
           <div
             onClick={() => setFlipped(!flipped)}
@@ -102,15 +116,29 @@ function App() {
             </h3>
           </div>
 
-          {index < flashcards.length - 1 ? (
-            <button onClick={handleNext}>Next Card</button>
-          ) : (
-            <button onClick={handleRestart}>Start Over</button>
-          )}
+          <div style={{ marginBottom: '1rem' }}>
+            <button onClick={() => handleRating('again')}>Again</button>
+            <button onClick={() => handleRating('hard')}>Hard</button>
+            <button onClick={() => handleRating('good')}>Good</button>
+            <button onClick={() => handleRating('easy')}>Easy</button>
+          </div>
 
           <p style={{ marginTop: '1rem' }}>
             Card {index + 1} of {flashcards.length}
           </p>
+        </div>
+      )}
+
+      {finished && (
+        <div style={{ marginTop: '2rem' }}>
+          <h2>Rating Summary</h2>
+          <ul>
+            <li>Again: {ratings.again}</li>
+            <li>Hard: {ratings.hard}</li>
+            <li>Good: {ratings.good}</li>
+            <li>Easy: {ratings.easy}</li>
+          </ul>
+          <button onClick={handleRestart}>Start Over</button>
         </div>
       )}
     </div>
