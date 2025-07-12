@@ -14,6 +14,7 @@ interface Flashcard {
   easeFactor: number;
   interval: number;
   dueDate: number;
+  easy: boolean;
 }
 
 interface Deck {
@@ -21,6 +22,8 @@ interface Deck {
   name: string;
   flashcards: Flashcard[];
   index: number;
+  round: number;
+  roundFinished: boolean;
   finished: boolean;
   ratings: Record<Rating, number>;
   ratingHistory: Rating[];
@@ -32,7 +35,13 @@ export default function App() {
   const [decks, setDecks] = useState<Deck[]>(() => {
     try {
       const saved = localStorage.getItem('decks');
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return parsed.map((d: any) => ({
+        ...d,
+        round: d.round ?? 1,
+        roundFinished: false,
+        flashcards: d.flashcards.map((c: any) => ({ ...c, easy: c.easy ?? false })),
+      }));
     } catch {
       return [];
     }
@@ -46,9 +55,11 @@ export default function App() {
 
   const selectedDeck = decks.find((d) => d.id === selectedDeckId) ?? null;
   const flashcards = selectedDeck?.flashcards ?? [];
+  const activeCards = flashcards.filter((c) => !c.easy);
   const index = selectedDeck?.index ?? 0;
-  const currentCard = flashcards[index] ?? null;
+  const currentCard = activeCards[index] ?? null;
   const finished = selectedDeck?.finished ?? false;
+  const roundFinished = selectedDeck?.roundFinished ?? false;
   const ratings = selectedDeck?.ratings ?? { again: 0, hard: 0, good: 0, easy: 0 };
   const ratingHistory = selectedDeck?.ratingHistory ?? [];
 
@@ -109,8 +120,11 @@ export default function App() {
           easeFactor: 2.5,
           interval: 0,
           dueDate: Date.now(),
+          easy: false,
         })),
         index: 0,
+        round: 1,
+        roundFinished: false,
         finished: false,
         ratings: { again: 0, hard: 0, good: 0, easy: 0 },
         ratingHistory: [],
@@ -134,15 +148,27 @@ export default function App() {
     const updatedDecks = decks.map((deck) => {
       if (deck.id !== selectedDeck.id) return deck;
 
-      const updatedCard = reviewCard(currentCard, rating);
+      const activeCards = deck.flashcards.filter((c) => !c.easy);
+      const activeCard = activeCards[deck.index];
+      const cardIdx = deck.flashcards.findIndex((c) => c === activeCard);
+
+      const updatedCard = reviewCard(activeCard, rating);
+      if (rating === 'easy') {
+        updatedCard.easy = true;
+      }
+
       const updatedFlashcards = [...deck.flashcards];
-      updatedFlashcards[deck.index] = updatedCard;
+      updatedFlashcards[cardIdx] = updatedCard;
+
+      const remaining = updatedFlashcards.filter((c) => !c.easy);
+      const nextIndex = deck.index + 1;
 
       return {
         ...deck,
         flashcards: updatedFlashcards,
-        index: deck.index + 1,
-        finished: deck.index + 1 >= deck.flashcards.length,
+        index: nextIndex,
+        roundFinished: nextIndex >= remaining.length,
+        finished: remaining.length === 0,
         ratingHistory: [...deck.ratingHistory, rating],
         ratings: {
           ...deck.ratings,
@@ -163,6 +189,9 @@ export default function App() {
         ? {
             ...deck,
             index: 0,
+            round: 1,
+            roundFinished: false,
+            flashcards: deck.flashcards.map((c) => ({ ...c, easy: false })),
             finished: false,
             ratings: { again: 0, hard: 0, good: 0, easy: 0 },
             ratingHistory: [],
@@ -171,6 +200,17 @@ export default function App() {
     );
 
     setDecks(resetDecks);
+    setFlipped(false);
+  };
+
+  const handleNextRound = () => {
+    if (!selectedDeckId) return;
+    const next = decks.map((deck) =>
+      deck.id === selectedDeckId
+        ? { ...deck, round: deck.round + 1, roundFinished: false, index: 0 }
+        : deck
+    );
+    setDecks(next);
     setFlipped(false);
   };
   return (
@@ -202,19 +242,23 @@ export default function App() {
               </div>
               <h2 className="text-2xl font-bold">Your Decks</h2>
               <ul className="list-none space-y-4">
-                {decks.map((deck) => (
-                  <li key={deck.id} className="flex justify-between items-center bg-zinc-800 p-4 rounded shadow">
-                    <span className="text-lg font-medium">
-                      {deck.name} — {deck.finished ? '✅ Completed' : `📄 Card ${deck.index + 1} of ${deck.flashcards.length}`}
-                    </span>
-                    <button
-                      className="bg-indigo-600 text-white px-4 py-1.5 rounded hover:bg-indigo-500"
-                      onClick={() => setSelectedDeckId(deck.id)}
-                    >
-                      {deck.finished ? 'Review' : 'Continue'}
-                    </button>
-                  </li>
-                ))}
+                {decks.map((deck) => {
+                  const remaining = deck.flashcards.filter((c) => !c.easy).length;
+                  return (
+                    <li key={deck.id} className="flex justify-between items-center bg-zinc-800 p-4 rounded shadow">
+                      <span className="text-lg font-medium">
+                        {deck.name} —{' '}
+                        {deck.finished ? '✅ Completed' : `Round ${deck.round} — ${remaining} left`}
+                      </span>
+                      <button
+                        className="bg-indigo-600 text-white px-4 py-1.5 rounded hover:bg-indigo-500"
+                        onClick={() => setSelectedDeckId(deck.id)}
+                      >
+                        {deck.finished ? 'Review' : 'Continue'}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </motion.div>
           </AnimatePresence>
@@ -266,13 +310,14 @@ export default function App() {
         )}
   
         {/* Review View */}
-        {selectedDeck && !finished && currentCard && (
+        {selectedDeck && !finished && !roundFinished && currentCard && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
             className="space-y-8"
           >
+            <h2 className="text-center text-xl font-bold">Round {selectedDeck.round}</h2>
             <div
               onClick={() => setFlipped(!flipped)}
               className="bg-zinc-800 p-10 rounded-lg shadow-lg text-2xl leading-relaxed font-medium text-center cursor-pointer hover:scale-[1.02] transition min-h-[160px] flex items-center justify-center"
@@ -293,11 +338,36 @@ export default function App() {
             </div>
   
             <p className="text-center text-sm text-gray-400">
-              Card {index + 1} of {flashcards.length}
+              Card {index + 1} of {activeCards.length}
             </p>
           </motion.div>
         )}
   
+        {/* Round Recap */}
+        {selectedDeck && roundFinished && !finished && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-8"
+          >
+            <h2 className="text-2xl font-bold text-center">
+              Round {selectedDeck.round} Complete
+            </h2>
+            <p className="text-center text-md text-gray-300">
+              Cards remaining: {selectedDeck.flashcards.filter((c) => !c.easy).length}
+            </p>
+            <div className="flex justify-center">
+              <button
+                onClick={handleNextRound}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded text-lg"
+              >
+                Next Round
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Completion View */}
         {selectedDeck && finished && (
           <motion.div
