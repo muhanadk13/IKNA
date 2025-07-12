@@ -39,6 +39,7 @@ export default function App() {
   });
 
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
+  const [view, setView] = useState<'home' | 'form'>('home');
   const [flipped, setFlipped] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -116,10 +117,10 @@ export default function App() {
       };
 
       setDecks((prev) => [...prev, newDeck]);
-      setSelectedDeckId(newDeck.id);
       setNotes('');
       setDeckName('');
       setFlipped(false);
+      setView('home');
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');
     } finally {
@@ -182,61 +183,83 @@ export default function App() {
   
         {error && <p className="text-red-400 text-center text-lg animate-pulse">{error}</p>}
   
-        {!selectedDeck && (
+        {!selectedDeck && view === 'home' && (
           <AnimatePresence>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
-              className="grid md:grid-cols-2 gap-12"
+              className="space-y-6"
             >
-              {/* Deck List */}
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Your Decks</h2>
-                <ul className="list-none space-y-4">
-                  {decks.map((deck) => (
-                    <li key={deck.id} className="flex justify-between items-center bg-zinc-800 p-4 rounded shadow">
-                      <span className="text-lg font-medium">
-                        {deck.name} — {deck.finished ? '✅ Completed' : `📄 Card ${deck.index + 1} of ${deck.flashcards.length}`}
-                      </span>
-                      <button
-                        className="bg-indigo-600 text-white px-4 py-1.5 rounded hover:bg-indigo-500"
-                        onClick={() => setSelectedDeckId(deck.id)}
-                      >
-                        {deck.finished ? 'Review' : 'Continue'}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+              <div className="flex justify-start">
+                <button
+                  onClick={() => setView('form')}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded"
+                >
+                  Enter Notes
+                </button>
               </div>
-  
-              {/* New Deck Form */}
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Create New Deck</h2>
-                <div className="flex flex-col space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Deck name"
-                    value={deckName}
-                    onChange={(e) => setDeckName(e.target.value)}
-                    className="bg-zinc-800 p-3 rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  <textarea
-                    rows={8}
-                    placeholder="Paste your notes here..."
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="bg-zinc-800 p-3 rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  <button
-                    onClick={handleGenerate}
-                    disabled={loading || !notes.trim() || !deckName.trim()}
-                    className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded"
-                  >
-                    {loading ? 'Generating...' : 'Generate Flashcards'}
-                  </button>
-                </div>
+              <h2 className="text-2xl font-bold">Your Decks</h2>
+              <ul className="list-none space-y-4">
+                {decks.map((deck) => (
+                  <li key={deck.id} className="flex justify-between items-center bg-zinc-800 p-4 rounded shadow">
+                    <span className="text-lg font-medium">
+                      {deck.name} — {deck.finished ? '✅ Completed' : `📄 Card ${deck.index + 1} of ${deck.flashcards.length}`}
+                    </span>
+                    <button
+                      className="bg-indigo-600 text-white px-4 py-1.5 rounded hover:bg-indigo-500"
+                      onClick={() => setSelectedDeckId(deck.id)}
+                    >
+                      {deck.finished ? 'Review' : 'Continue'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </AnimatePresence>
+        )}
+
+        {!selectedDeck && view === 'form' && (
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-6"
+            >
+              <div className="flex justify-start">
+                <button
+                  onClick={() => setView('home')}
+                  className="bg-zinc-700 hover:bg-zinc-600 text-white px-4 py-2 rounded"
+                >
+                  Back
+                </button>
+              </div>
+              <h2 className="text-2xl font-bold">Create New Deck</h2>
+              <div className="flex flex-col space-y-4">
+                <input
+                  type="text"
+                  placeholder="Deck name"
+                  value={deckName}
+                  onChange={(e) => setDeckName(e.target.value)}
+                  className="bg-zinc-800 p-3 rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <textarea
+                  rows={8}
+                  placeholder="Paste your notes here..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="bg-zinc-800 p-3 rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  onClick={handleGenerate}
+                  disabled={loading || !notes.trim() || !deckName.trim()}
+                  className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded"
+                >
+                  {loading ? 'Generating...' : 'Generate Flashcards'}
+                </button>
               </div>
             </motion.div>
           </AnimatePresence>
