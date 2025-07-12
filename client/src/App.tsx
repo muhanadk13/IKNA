@@ -172,14 +172,16 @@ export default function App() {
     setDecks(resetDecks);
     setFlipped(false);
   };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-indigo-100 p-8 font-sans text-gray-800 transition-all">
-      <div className="max-w-3xl mx-auto space-y-12 animate-fade-in">
-        <h1 className="text-6xl font-black text-center mb-8 text-indigo-700 tracking-tight">📚 IKNA</h1>
-
-        {error && <p className="text-red-500 text-center animate-pulse text-lg font-semibold">{error}</p>}
-
+    <div className="min-h-screen bg-zinc-900 text-white px-6 py-10 font-sans">
+      <div className="max-w-4xl mx-auto space-y-16">
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-5xl font-extrabold text-center">📚 IKNA</h1>
+          <p className="text-sm text-gray-400 font-medium tracking-wide">Intelligent Knowledge with Neural Assistance</p>
+        </div>
+  
+        {error && <p className="text-red-400 text-center text-lg animate-pulse">{error}</p>}
+  
         {!selectedDeck && (
           <AnimatePresence>
             <motion.div
@@ -187,119 +189,126 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
-              className="space-y-8"
+              className="grid md:grid-cols-2 gap-12"
             >
-              {decks.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-bold mb-4">Your Decks</h2>
-                  <ul className="space-y-4">
-                    {decks.map((deck) => (
-                      <li key={deck.id} className="flex justify-between items-center p-4 bg-white rounded shadow">
-                        <span className="text-lg font-medium">
-                          {deck.name} — {deck.finished ? '✅ Completed' : `📄 Card ${deck.index + 1} of ${deck.flashcards.length}`}
-                        </span>
-                        <button
-                          className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
-                          onClick={() => setSelectedDeckId(deck.id)}
-                        >
-                          {deck.finished ? 'Review' : 'Continue'}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+              {/* Deck List */}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold">Your Decks</h2>
+                <ul className="list-none space-y-4">
+                  {decks.map((deck) => (
+                    <li key={deck.id} className="flex justify-between items-center bg-zinc-800 p-4 rounded shadow">
+                      <span className="text-lg font-medium">
+                        {deck.name} — {deck.finished ? '✅ Completed' : `📄 Card ${deck.index + 1} of ${deck.flashcards.length}`}
+                      </span>
+                      <button
+                        className="bg-indigo-600 text-white px-4 py-1.5 rounded hover:bg-indigo-500"
+                        onClick={() => setSelectedDeckId(deck.id)}
+                      >
+                        {deck.finished ? 'Review' : 'Continue'}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+  
+              {/* New Deck Form */}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold">Create New Deck</h2>
+                <div className="flex flex-col space-y-4">
+                  <input
+                    type="text"
+                    placeholder="Deck name"
+                    value={deckName}
+                    onChange={(e) => setDeckName(e.target.value)}
+                    className="bg-zinc-800 p-3 rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <textarea
+                    rows={8}
+                    placeholder="Paste your notes here..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="bg-zinc-800 p-3 rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <button
+                    onClick={handleGenerate}
+                    disabled={loading || !notes.trim() || !deckName.trim()}
+                    className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded"
+                  >
+                    {loading ? 'Generating...' : 'Generate Flashcards'}
+                  </button>
                 </div>
-              )}
-
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Create New Deck</h2>
-                <input
-                  type="text"
-                  placeholder="Deck name"
-                  value={deckName}
-                  onChange={(e) => setDeckName(e.target.value)}
-                  className="border p-3 w-full mb-4 rounded shadow-sm text-lg"
-                />
-                <textarea
-                  rows={10}
-                  placeholder="Paste your notes here..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="border p-3 w-full mb-4 rounded shadow-sm text-lg"
-                />
-                <button
-                  onClick={handleGenerate}
-                  disabled={loading || !notes.trim() || !deckName.trim()}
-                  className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 disabled:opacity-50 text-lg font-semibold"
-                >
-                  {loading ? 'Generating...' : 'Generate Flashcards'}
-                </button>
               </div>
             </motion.div>
           </AnimatePresence>
         )}
-
+  
+        {/* Review View */}
         {selectedDeck && !finished && currentCard && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="space-y-6"
+            className="space-y-8"
           >
             <div
               onClick={() => setFlipped(!flipped)}
-              className="bg-white border rounded-xl p-8 shadow-xl text-center text-2xl font-medium cursor-pointer hover:shadow-2xl transition duration-300 hover:scale-[1.02] min-h-[150px] flex items-center justify-center"
+              className="bg-zinc-800 p-10 rounded-lg shadow-lg text-2xl leading-relaxed font-medium text-center cursor-pointer hover:scale-[1.02] transition min-h-[160px] flex items-center justify-center"
             >
               {flipped ? currentCard.answer : currentCard.question}
             </div>
-
+  
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(['again', 'hard', 'good', 'easy'] as Rating[]).map((rating) => (
                 <button
                   key={rating}
                   onClick={() => handleRating(rating)}
-                  className="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 py-3 rounded text-lg font-semibold shadow"
+                  className="bg-indigo-700 hover:bg-indigo-600 py-3 rounded text-white text-lg font-semibold"
                 >
                   {rating.charAt(0).toUpperCase() + rating.slice(1)}
                 </button>
               ))}
             </div>
-
-            <p className="text-center text-base text-gray-600">
+  
+            <p className="text-center text-sm text-gray-400">
               Card {index + 1} of {flashcards.length}
             </p>
           </motion.div>
         )}
-
+  
+        {/* Completion View */}
         {selectedDeck && finished && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="space-y-6"
+            className="space-y-8"
           >
-            <h2 className="text-2xl font-bold text-center text-green-700 flex items-center justify-center gap-2">
+            <h2 className="text-2xl font-bold text-center text-green-500 flex items-center justify-center gap-2">
               <CheckCircle className="w-6 h-6" /> Review Complete
             </h2>
-            <ul className="list-disc list-inside space-y-1 text-lg">
+  
+            <div className="bg-zinc-800 p-6 rounded-lg shadow space-y-2">
               {ratingHistory.map((r, i) => (
-                <li key={i}>
-                  Card {i + 1}: {r.charAt(0).toUpperCase() + r.slice(1)}
-                </li>
+                <div key={i} className="text-lg">
+                  <span className="text-gray-400">Card {i + 1}:</span> {r.charAt(0).toUpperCase() + r.slice(1)}
+                </div>
               ))}
-            </ul>
-            <p className="text-center text-lg">
+            </div>
+  
+            <p className="text-center text-md text-gray-300">
               Again: {ratings.again} | Hard: {ratings.hard} | Good: {ratings.good} | Easy: {ratings.easy}
             </p>
-            <div className="flex justify-center gap-6">
+  
+            <div className="flex justify-center gap-4">
               <button
                 onClick={handleRestart}
-                className="flex items-center gap-2 bg-yellow-500 text-white px-5 py-3 rounded hover:bg-yellow-600 text-lg"
+                className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-white px-5 py-3 rounded text-lg"
               >
                 <RefreshCw className="w-5 h-5" /> Restart
               </button>
               <button
                 onClick={() => setSelectedDeckId(null)}
-                className="flex items-center gap-2 bg-gray-300 px-5 py-3 rounded hover:bg-gray-400 text-lg"
+                className="flex items-center gap-2 bg-zinc-700 hover:bg-zinc-600 px-5 py-3 rounded text-white text-lg"
               >
                 <ArrowLeftCircle className="w-5 h-5" /> Back to Decks
               </button>
@@ -309,4 +318,6 @@ export default function App() {
       </div>
     </div>
   );
+  
+  
 }
