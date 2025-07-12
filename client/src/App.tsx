@@ -21,6 +21,7 @@ interface Deck {
   id: string;
   name: string;
   flashcards: Flashcard[];
+  roundOrder: number[];
   index: number;
   round: number;
   roundFinished: boolean;
@@ -41,6 +42,8 @@ export default function App() {
         round: d.round ?? 1,
         roundFinished: false,
         flashcards: d.flashcards.map((c: any) => ({ ...c, easy: c.easy ?? false })),
+        roundOrder:
+          d.roundOrder ?? d.flashcards.map((_: any, idx: number) => idx),
       }));
     } catch {
       return [];
@@ -55,9 +58,10 @@ export default function App() {
 
   const selectedDeck = decks.find((d) => d.id === selectedDeckId) ?? null;
   const flashcards = selectedDeck?.flashcards ?? [];
-  const activeCards = flashcards.filter((c) => !c.easy);
+  const roundOrder = selectedDeck?.roundOrder ?? [];
   const index = selectedDeck?.index ?? 0;
-  const currentCard = activeCards[index] ?? null;
+  const currentCard =
+    roundOrder[index] !== undefined ? flashcards[roundOrder[index]] : null;
   const finished = selectedDeck?.finished ?? false;
   const roundFinished = selectedDeck?.roundFinished ?? false;
   const ratings = selectedDeck?.ratings ?? { again: 0, hard: 0, good: 0, easy: 0 };
@@ -122,6 +126,7 @@ export default function App() {
           dueDate: Date.now(),
           easy: false,
         })),
+        roundOrder: data.flashcards.map((_: any, idx: number) => idx),
         index: 0,
         round: 1,
         roundFinished: false,
@@ -148,9 +153,8 @@ export default function App() {
     const updatedDecks = decks.map((deck) => {
       if (deck.id !== selectedDeck.id) return deck;
 
-      const activeCards = deck.flashcards.filter((c) => !c.easy);
-      const activeCard = activeCards[deck.index];
-      const cardIdx = deck.flashcards.findIndex((c) => c === activeCard);
+      const cardIdx = deck.roundOrder[deck.index];
+      const activeCard = deck.flashcards[cardIdx];
 
       const updatedCard = reviewCard(activeCard, rating);
       if (rating === 'easy') {
@@ -160,15 +164,15 @@ export default function App() {
       const updatedFlashcards = [...deck.flashcards];
       updatedFlashcards[cardIdx] = updatedCard;
 
-      const remaining = updatedFlashcards.filter((c) => !c.easy);
       const nextIndex = deck.index + 1;
+      const finished = updatedFlashcards.every((c) => c.easy);
 
       return {
         ...deck,
         flashcards: updatedFlashcards,
         index: nextIndex,
-        roundFinished: nextIndex >= remaining.length,
-        finished: remaining.length === 0,
+        roundFinished: nextIndex >= deck.roundOrder.length,
+        finished,
         ratingHistory: [...deck.ratingHistory, rating],
         ratings: {
           ...deck.ratings,
@@ -191,6 +195,7 @@ export default function App() {
             index: 0,
             round: 1,
             roundFinished: false,
+            roundOrder: deck.flashcards.map((_, idx) => idx),
             flashcards: deck.flashcards.map((c) => ({ ...c, easy: false })),
             finished: false,
             ratings: { again: 0, hard: 0, good: 0, easy: 0 },
@@ -205,11 +210,20 @@ export default function App() {
 
   const handleNextRound = () => {
     if (!selectedDeckId) return;
-    const next = decks.map((deck) =>
-      deck.id === selectedDeckId
-        ? { ...deck, round: deck.round + 1, roundFinished: false, index: 0 }
-        : deck
-    );
+    const next = decks.map((deck) => {
+      if (deck.id !== selectedDeckId) return deck;
+      const order = deck.flashcards.reduce<number[]>((arr, c, idx) => {
+        if (!c.easy) arr.push(idx);
+        return arr;
+      }, []);
+      return {
+        ...deck,
+        round: deck.round + 1,
+        roundFinished: false,
+        index: 0,
+        roundOrder: order,
+      };
+    });
     setDecks(next);
     setFlipped(false);
   };
@@ -224,8 +238,7 @@ export default function App() {
 
   useEffect(() => {
     if (!selectedDeck) return;
-    const remaining = selectedDeck.flashcards.filter((c) => !c.easy);
-    if (remaining.length && selectedDeck.index >= remaining.length) {
+    if (selectedDeck.index >= selectedDeck.roundOrder.length) {
       setDecks((prev) =>
         prev.map((d) =>
           d.id === selectedDeck.id
@@ -263,7 +276,7 @@ export default function App() {
                 </button>
               </div>
               <h2 className="text-2xl font-bold">Your Decks</h2>
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {decks.map((deck) => {
                   const remaining = deck.flashcards.filter((c) => !c.easy).length;
                   return (
@@ -373,7 +386,7 @@ export default function App() {
             </div>
   
             <p className="text-center text-sm text-gray-400">
-              Card {index + 1} of {activeCards.length}
+              Card {index + 1} of {selectedDeck.roundOrder.length}
             </p>
           </motion.div>
         )}
