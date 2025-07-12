@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, RefreshCw, ArrowLeftCircle } from 'lucide-react';
+import { CheckCircle, RefreshCw, ArrowLeftCircle, Trash2 } from 'lucide-react';
 import './App.css';
 
 // Types
@@ -213,6 +213,28 @@ export default function App() {
     setDecks(next);
     setFlipped(false);
   };
+
+  const handleDeleteDeck = (id: string) => {
+    const filtered = decks.filter((d) => d.id !== id);
+    setDecks(filtered);
+    if (selectedDeckId === id) {
+      setSelectedDeckId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedDeck) return;
+    const remaining = selectedDeck.flashcards.filter((c) => !c.easy);
+    if (remaining.length && selectedDeck.index >= remaining.length) {
+      setDecks((prev) =>
+        prev.map((d) =>
+          d.id === selectedDeck.id
+            ? { ...d, index: 0, roundFinished: false }
+            : d
+        )
+      );
+    }
+  }, [selectedDeckId]);
   return (
     <div className="min-h-screen bg-zinc-900 text-white px-6 py-10 font-sans">
       <div className="max-w-4xl mx-auto space-y-16">
@@ -241,25 +263,38 @@ export default function App() {
                 </button>
               </div>
               <h2 className="text-2xl font-bold">Your Decks</h2>
-              <ul className="list-none space-y-4">
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {decks.map((deck) => {
                   const remaining = deck.flashcards.filter((c) => !c.easy).length;
                   return (
-                    <li key={deck.id} className="flex justify-between items-center bg-zinc-800 p-4 rounded shadow">
-                      <span className="text-lg font-medium">
-                        {deck.name} —{' '}
-                        {deck.finished ? '✅ Completed' : `Round ${deck.round} — ${remaining} left`}
-                      </span>
-                      <button
-                        className="bg-indigo-600 text-white px-4 py-1.5 rounded hover:bg-indigo-500"
-                        onClick={() => setSelectedDeckId(deck.id)}
-                      >
-                        {deck.finished ? 'Review' : 'Continue'}
-                      </button>
-                    </li>
+                    <div
+                      key={deck.id}
+                      className="bg-white text-black rounded shadow p-6 flex flex-col justify-between w-[300px] h-[300px]"
+                    >
+                      <div>
+                        <h3 className="text-xl font-semibold">{deck.name}</h3>
+                        <p className="text-sm mt-1">
+                          {deck.finished ? '✅ Completed' : `Round ${deck.round} — ${remaining} left`}
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center mt-4">
+                        <button
+                          className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded"
+                          onClick={() => setSelectedDeckId(deck.id)}
+                        >
+                          {deck.finished ? 'Review' : 'Continue'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDeck(deck.id)}
+                          className="text-red-600 flex items-center gap-1"
+                        >
+                          <Trash2 className="w-5 h-5" /> Delete
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
             </motion.div>
           </AnimatePresence>
         )}
