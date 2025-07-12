@@ -154,15 +154,18 @@ export default function App() {
       if (deck.id !== selectedDeck.id) return deck;
 
       const cardIdx = deck.roundOrder[deck.index];
-      const activeCard = deck.flashcards[cardIdx];
+      const activeCard = cardIdx !== undefined ? deck.flashcards[cardIdx] : null;
 
+      if (!activeCard) return deck; // Ensure activeCard is defined
       const updatedCard = reviewCard(activeCard, rating);
       if (rating === 'easy') {
         updatedCard.easy = true;
       }
 
       const updatedFlashcards = [...deck.flashcards];
-      updatedFlashcards[cardIdx] = updatedCard;
+      if (cardIdx !== undefined) {
+        updatedFlashcards[cardIdx] = updatedCard;
+      }
 
       const nextIndex = deck.index + 1;
       const finished = updatedFlashcards.every((c) => c.easy);
