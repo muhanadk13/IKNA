@@ -1,68 +1,352 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Modern Calm Tech Dark Theme */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --primary: #3A86FF;
+  --secondary: #9B5DE5;
+  --background: #121212;
+  --surface: #1E1E1E;
+  --text-primary: #F1F1F1;
+  --text-secondary: #A1A1AA;
+  --border: #2A2A2A;
+  --error: #FF4D6D;
+  --success: #06D6A0;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
+/* Custom styles */
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--background);
+  color: var(--text-primary);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(30, 30, 30, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(42, 42, 42, 0.3);
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+}
+
+.gradient-surface {
+  background: linear-gradient(135deg, var(--surface) 0%, #252525 100%);
+}
+
+/* Card animations */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.btn-primary:hover {
+  background-color: #2563eb;
+}
+
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.5);
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #7c3aed;
+}
+
+.btn-secondary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(155, 93, 229, 0.5);
+}
+
+.btn-success {
+  background-color: var(--success);
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+}
+
+.btn-success:hover {
+  background-color: #059669;
+}
+
+.btn-success:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(6, 214, 160, 0.5);
+}
+
+.btn-danger {
+  background-color: var(--error);
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+.btn-danger:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 77, 109, 0.5);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+}
+
+.btn-ghost:hover {
+  background-color: #374151;
+  color: white;
+}
+
+.btn-ghost:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.5);
+}
+
+/* Input styles */
+.input-field {
+  background-color: #374151;
+  border: 1px solid #4b5563;
+  color: white;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s;
+}
+
+.input-field::placeholder {
+  color: #9ca3af;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.5);
+}
+
+/* Card styles */
+.card {
+  background-color: #374151;
+  border: 1px solid #4b5563;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.card-hover {
+  transition: all 0.3s;
+}
+
+.card-hover:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Custom card flip animation */
+.card-flip {
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-flip.flipped {
+  transform: rotateY(180deg);
+}
+
+/* Loading animation */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 50%;
+  height: 2rem;
+  width: 2rem;
+  border-bottom: 2px solid var(--primary);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
-  a:hover {
-    color: #747bff;
+}
+
+/* Success/Error states */
+.success {
+  color: var(--success);
+  background-color: rgba(6, 214, 160, 0.1);
+  border: 1px solid var(--success);
+}
+
+.error {
+  color: var(--error);
+  background-color: rgba(255, 77, 109, 0.1);
+  border: 1px solid var(--error);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Pulse animation for notifications */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(58, 134, 255, 0.5);
   }
-  button {
-    background-color: #f9f9f9;
+  50% {
+    box-shadow: 0 0 20px rgba(58, 134, 255, 0.8);
   }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+.search-bar-animated {
+  width: 3em;
+  transition: width 0.3s;
+}
+.search-bar-animated:focus-within {
+  width: 20em;
+}
+.search-bar-input {
+  transition: width 0.3s;
+}
+@media (max-width: 600px) {
+  .search-bar-animated {
+    width: 2.5em;
+  }
+  .search-bar-animated:focus-within {
+    width: 100vw;
+  }
+}
+
+.search-box {
+  font-size: 20px;
+  border: solid 0.3em #000;
+  display: inline-block;
+  position: relative;
+  border-radius: 2.5em;
+}
+.search-box input[type="text"] {
+  font-family: inherit;
+  font-weight: bold;
+  width: 2.5em;
+  height: 2.5em;
+  padding: 0.3em 2.1em 0.3em 0.4em;
+  border: none;
+  box-sizing: border-box;
+  border-radius: 2.5em;
+  transition:
+    width 800ms cubic-bezier(0.68, -0.55, 0.27, 1.55) 150ms;
+}
+.search-box input[type="text"]:focus {
+  outline: none;
+}
+.search-box input[type="text"]:focus,
+.search-box input[type="text"]:not(:placeholder-shown) {
+  width: 18em;
+  transition: width 800ms cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+.search-box input[type="text"]:focus + button[type="reset"],
+.search-box input[type="text"]:not(:placeholder-shown) + button[type="reset"] {
+  transform: rotate(-45deg) translateY(0);
+  transition:
+    transform 150ms ease-out 800ms;
+}
+.search-box input[type="text"]:focus + button[type="reset"]:after,
+.search-box input[type="text"]:not(:placeholder-shown) + button[type="reset"]:after {
+  opacity: 1;
+  transition:
+    top 150ms ease-out 950ms,
+    right 150ms ease-out 950ms,
+    opacity 150ms ease 950ms;
+}
+.search-box button[type="reset"] {
+  background-color: transparent;
+  width: 1.4em;
+  height: 1.4em;
+  border: 0;
+  padding: 0;
+  outline: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: calc(2.5em / 2 - 1.4em / 2);
+  right: calc(2.5em / 2 - 1.4em / 2);
+  transform: rotate(-45deg) translateY(calc(2.5em - 0.3em));
+  transition:
+    transform 150ms ease-out 150ms;
+}
+.search-box button[type="reset"]:before,
+.search-box button[type="reset"]:after {
+  content: "";
+  background-color: #000;
+  width: 0.3em;
+  height: 1.4em;
+  position: absolute;
+}
+.search-box button[type="reset"]:after {
+  transform: rotate(90deg);
+  opacity: 0;
+  transition:
+    transform 150ms ease-out,
+    opacity 150ms ease-out;
 }
