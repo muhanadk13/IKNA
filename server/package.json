@@ -6,21 +6,42 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "test": "echo \"Tests not implemented yet\"",
-    "lint": "echo \"Linting not configured yet\"",
-    "type-check": "echo \"TypeScript not configured yet\""
+    "test": "jest",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.1",
+    "express-slow-down": "^2.0.1",
     "helmet": "^8.1.0",
-    "openai": "^5.8.3"
+    "jsonwebtoken": "^9.0.2",
+    "joi": "^17.12.2",
+    "openai": "^5.8.3",
+    "pg": "^8.11.3",
+    "redis": "^4.6.13",
+    "uuid": "^9.0.1",
+    "express-validator": "^7.0.1",
+    "node-cron": "^3.0.3",
+    "winston": "^3.11.0",
+    "express-mongo-sanitize": "^2.2.0",
+    "xss-clean": "^0.1.4",
+    "hpp": "^0.2.3"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.57.0",
+    "nodemon": "^3.0.3",
+    "supertest": "^6.3.4"
   }
 }

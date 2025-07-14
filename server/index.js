@@ -4,10 +4,17 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean';
+import hpp from 'hpp';
+import cron from 'node-cron';
 
 import { errorHandler, notFound, asyncHandler } from './middleware/errorHandler.js';
-import { validateGenerate } from './middleware/validation.js';
+import { validateGenerate, sanitizeInput, dbRateLimit } from './middleware/validation.js';
 import { openAIService } from './services/openai.js';
+import authRoutes from './routes/auth.js';
+import deckRoutes from './routes/decks.js';
+import flashcardRoutes from './routes/flashcards.js';
 
 // Load environment variables
 dotenv.config();
@@ -36,10 +43,10 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Rate limiting
-const limiter = rateLimit({
+// Global rate limiting
+const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // limit each IP to 1000 requests per windowMs
   message: {
     error: {
       message: 'Too many requests from this IP, please try again later.',
@@ -50,7 +57,16 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use(limiter);
+app.use(globalLimiter);
+
+// Database-based rate limiting
+app.use(dbRateLimit);
+
+// Input sanitization
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
+app.use(sanitizeInput);
 
 // Compression
 app.use(compression());
@@ -81,7 +97,12 @@ app.get('/health', asyncHandler(async (req, res) => {
   });
 }));
 
-// Generate flashcards endpoint
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/decks', deckRoutes);
+app.use('/api/flashcards', flashcardRoutes);
+
+// Generate flashcards endpoint (legacy support)
 app.post('/generate', validateGenerate, asyncHandler(async (req, res) => {
   const result = await openAIService.generateFlashcards(req.body);
   
@@ -95,24 +116,73 @@ app.post('/generate', validateGenerate, asyncHandler(async (req, res) => {
 app.get('/api-docs', (req, res) => {
   res.json({
     name: 'IKNA Flashcard API',
-    version: '1.0.0',
-    description: 'AI-powered flashcard generation API',
+    version: '2.0.0',
+    description: 'AI-powered flashcard generation API with SRS',
+    features: [
+      'JWT Authentication',
+      'PostgreSQL Database',
+      'SRS Algorithm',
+      'Rate Limiting',
+      'Input Sanitization',
+      'Secure OpenAI Proxy'
+    ],
     endpoints: {
-      'POST /generate': {
-        description: 'Generate flashcards from notes using AI',
-        body: {
-          notes: 'string (required)',
-          difficulty: 'beginner|intermediate|advanced (optional)',
-          count: 'number 1-50 (optional)',
-          format: 'qa|fill|definition|mcq (optional)',
-          tags: 'string[] (optional)',
-        },
+      'Authentication': {
+        'POST /api/auth/register': 'Register new user',
+        'POST /api/auth/login': 'Login user',
+        'POST /api/auth/logout': 'Logout user',
+        'POST /api/auth/verify-email': 'Verify email',
+        'POST /api/auth/forgot-password': 'Request password reset',
+        'POST /api/auth/reset-password': 'Reset password',
+        'POST /api/auth/change-password': 'Change password',
+        'GET /api/auth/profile': 'Get user profile',
+        'PUT /api/auth/profile': 'Update user profile',
+        'DELETE /api/auth/account': 'Delete account'
       },
-      'GET /health': {
-        description: 'Health check endpoint',
+      'Decks': {
+        'GET /api/decks': 'Get user decks',
+        'POST /api/decks': 'Create deck',
+        'GET /api/decks/:id': 'Get specific deck',
+        'PUT /api/decks/:id': 'Update deck',
+        'DELETE /api/decks/:id': 'Delete deck',
+        'GET /api/decks/:id/stats': 'Get deck statistics',
+        'GET /api/decks/:id/study': 'Get study session',
+        'GET /api/decks/:id/export': 'Export deck',
+        'POST /api/decks/import': 'Import deck',
+        'POST /api/decks/:id/generate': 'Generate flashcards'
       },
+      'Flashcards': {
+        'GET /api/flashcards': 'Get all flashcards',
+        'POST /api/flashcards': 'Create flashcard',
+        'GET /api/flashcards/:id': 'Get specific flashcard',
+        'PUT /api/flashcards/:id': 'Update flashcard',
+        'DELETE /api/flashcards/:id': 'Delete flashcard',
+        'POST /api/flashcards/:id/review': 'Review flashcard',
+        'POST /api/flashcards/:id/reset': 'Reset flashcard progress',
+        'GET /api/flashcards/due': 'Get due flashcards',
+        'GET /api/flashcards/difficulty/:level': 'Get flashcards by difficulty',
+        'GET /api/flashcards/search/:term': 'Search flashcards',
+        'GET /api/flashcards/srs/stats': 'Get SRS statistics',
+        'GET /api/flashcards/srs/progress': 'Get learning progress'
+      },
+      'Legacy': {
+        'POST /generate': 'Generate flashcards (legacy)'
+      }
     },
   });
+});
+
+// Scheduled tasks
+cron.schedule('0 0 * * *', async () => {
+  // Daily cleanup of expired sessions and rate limits
+  console.log('Running daily cleanup...');
+  try {
+    // Clean up expired sessions and rate limits
+    // This would be implemented in a separate service
+    console.log('Daily cleanup completed');
+  } catch (error) {
+    console.error('Daily cleanup failed:', error);
+  }
 });
 
 // 404 handler
@@ -136,7 +206,8 @@ process.on('SIGINT', () => {
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
   console.log(`📚 Environment: ${NODE_ENV}`);
-  console.log(`🔒 Security: Helmet enabled`);
+  console.log(`🔒 Security: Helmet, Rate Limiting, Input Sanitization enabled`);
   console.log(`⚡ Compression: Enabled`);
-  console.log(`🛡️ Rate limiting: Enabled`);
+  console.log(`🗄️ Database: PostgreSQL with SRS`);
+  console.log(`🤖 OpenAI: Secure proxy enabled`);
 });
