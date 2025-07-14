@@ -107,20 +107,29 @@ class ApiService {
 
   async generateFlashcards(request: GenerateRequest): Promise<GenerateResponse> {
     try {
+      console.log('Attempting to generate flashcards with API...');
       const response = await this.request<{ success: boolean; data: GenerateResponse }>('/generate', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
+        method: 'POST',
+        body: JSON.stringify(request),
+      });
       
       if (response.success) {
+        console.log('Successfully generated flashcards via API');
         return response.data;
       } else {
         throw new ApiError('API returned unsuccessful response', 'API_ERROR');
       }
     } catch (error) {
-      // If API is unavailable, use fallback
-      console.warn('API unavailable, using fallback flashcards:', error);
-      return generateFallbackFlashcards(request.notes);
+      console.error('API error details:', error);
+      
+      // Only use fallback for network errors or server unavailability
+      if (error instanceof ApiError && error.code === 'NETWORK_ERROR') {
+        console.warn('API unavailable, using fallback flashcards:', error);
+        return generateFallbackFlashcards(request.notes);
+      }
+      
+      // For other errors (like API key issues, validation errors, etc.), throw the error
+      throw error;
     }
   }
 
@@ -137,29 +146,43 @@ class ApiService {
     request: GenerateRequest,
     maxRetries: number = 3
   ): Promise<GenerateResponse> {
-    let lastError: ApiError;
+    let lastError: ApiError | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
+        console.log(`Attempt ${attempt}/${maxRetries} to generate flashcards...`);
         return await this.generateFlashcards(request);
       } catch (error) {
         lastError = error as ApiError;
+        console.error(`Attempt ${attempt} failed:`, error);
+        
+        // If it's an API key error or validation error, don't retry
+        if (error instanceof ApiError && 
+            (error.code === 'API_ERROR' || error.message.includes('API key'))) {
+          console.error('API configuration error, not retrying:', error);
+          throw error;
+        }
         
         if (attempt === maxRetries) {
-          // On final attempt, use fallback instead of throwing
-          console.warn('All retries failed, using fallback flashcards');
-          return generateFallbackFlashcards(request.notes);
+          // Only use fallback for network/server issues
+          if (error instanceof ApiError && error.code === 'NETWORK_ERROR') {
+            console.warn('All retries failed due to network issues, using fallback flashcards');
+            return generateFallbackFlashcards(request.notes);
+          } else {
+            // For other errors, throw the last error
+            throw lastError;
+          }
         }
 
         // Exponential backoff
-        await new Promise(resolve => 
-          setTimeout(resolve, Math.pow(2, attempt) * 1000)
-        );
+        const delay = Math.pow(2, attempt) * 1000;
+        console.log(`Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
 
-    // This should never be reached due to fallback above, but just in case
-    return generateFallbackFlashcards(request.notes);
+    // This should never be reached, but just in case
+    throw lastError || new ApiError('Unknown error occurred', 'UNKNOWN_ERROR');
   }
 }
 

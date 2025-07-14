@@ -15,10 +15,17 @@ class OpenAIService {
   getClient() {
     if (!this.openai) {
       const apiKey = process.env.OPENAI_API_KEY;
-      if (!apiKey || apiKey === 'sk-your-openai-api-key-here') {
+      console.log('Checking OpenAI API key configuration...');
+      
+      if (!apiKey) {
         throw new OpenAIApiError('OpenAI API key not configured. Please set OPENAI_API_KEY in your .env file.');
       }
       
+      if (apiKey === 'sk-your-openai-api-key-here' || apiKey.includes('your-openai-api-key')) {
+        throw new OpenAIApiError('OpenAI API key is set to default value. Please set a valid OPENAI_API_KEY in your .env file.');
+      }
+      
+      console.log('OpenAI API key configured successfully');
       this.openai = new OpenAI({ 
         apiKey,
         maxRetries: 3,
@@ -81,6 +88,7 @@ class OpenAIService {
       if (!raw) {
         throw new OpenAIApiError('No response from OpenAI API');
       }
+      console.log('RAW OPENAI RESPONSE:', raw);
 
       const flashcards = this.parseResponse(raw);
       const validatedFlashcards = this.validateFlashcards(flashcards);
@@ -98,12 +106,28 @@ class OpenAIService {
       };
 
     } catch (error) {
+      console.error('Error generating flashcards:', error);
+      
       if (error instanceof OpenAIApiError) {
         throw error;
       }
 
       if (error instanceof OpenAI.APIError) {
-        throw new OpenAIApiError('OpenAI API error', error);
+        // Handle specific OpenAI API errors
+        if (error.status === 401) {
+          throw new OpenAIApiError('Invalid OpenAI API key. Please check your API key configuration.');
+        } else if (error.status === 429) {
+          throw new OpenAIApiError('OpenAI API rate limit exceeded. Please try again later.');
+        } else if (error.status === 500) {
+          throw new OpenAIApiError('OpenAI API server error. Please try again later.');
+        } else {
+          throw new OpenAIApiError(`OpenAI API error: ${error.message}`, error);
+        }
+      }
+
+      // Handle other errors
+      if (error.code === 'ENOTFOUND') {
+        throw new OpenAIApiError('Unable to connect to OpenAI API. Please check your internet connection.');
       }
 
       throw new OpenAIApiError('Failed to generate flashcards', error);
@@ -127,18 +151,20 @@ class OpenAIService {
     const tagContext = tags.length > 0 ? `\nContext/Tags: ${tags.join(', ')}` : '';
 
     return `
-Turn the following notes into ${count} ${difficulty}-level flashcards in ${format} format.
+For each non-empty line in the notes below, create exactly one flashcard. Do not combine lines. Each line should become its own notecard. 
+- If a line is a question, use it as the question and provide a concise answer.
+- If a line is a statement or just a phrase, use it as the question and make the answer: "This is a note: [repeat the line]".
+Use the ${format} format.
+
 ${formatPrompts[format] || formatPrompts.qa}
 ${difficultyPrompts[difficulty] || difficultyPrompts.beginner}
 
 Guidelines:
-- Questions should be clear, specific, and test understanding
-- Answers should be concise but complete and accurate
-- Avoid overly complex language for beginner level
-- Ensure questions promote active recall rather than simple memorization
-- Make sure all information is accurate based on the provided notes
-- Vary question types to maintain engagement
-- Include practical examples where appropriate
+- Each notecard should correspond to one line from the notes
+- Do not merge or split lines
+- If a line is a question, use it as the question and provide a concise answer
+- If a line is a statement or phrase, use it as the question and make the answer: "This is a note: [repeat the line]"
+- Return a valid JSON array, one object per line
 
 NOTES:
 ${notes}${tagContext}
@@ -148,7 +174,7 @@ Return your answer as a valid JSON array only, like this:
   { "question": "...", "answer": "..." },
   ...
 ]
-    `.trim();
+`.trim();
   }
 
   parseResponse(raw) {

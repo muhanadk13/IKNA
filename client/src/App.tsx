@@ -134,10 +134,9 @@ export default function App() {
       const newDeck: Deck = {
         id: crypto.randomUUID(),
         name: deckName.trim(),
-        flashcards: response.flashcards.map((card: { question: string; answer: string }): Flashcard => ({
+        flashcards: response.flashcards.map((card: any): Flashcard => ({
+          ...card, // Use all fields from the API (question, answer, source, etc.)
           id: crypto.randomUUID(),
-          question: card.question,
-          answer: card.answer,
           repetitions: 0,
           easeFactor: INITIAL_EASE_FACTOR,
           interval: 0,
@@ -741,6 +740,11 @@ export default function App() {
                       <div className="mb-8">
                         <h3 className="text-xl font-semibold mb-4">Question</h3>
                         <p className="text-lg leading-relaxed">{currentCard.question}</p>
+                        {currentCard.source && (
+                          <div className="text-xs text-text-secondary mt-2 italic">
+                            Source: {currentCard.source}
+                          </div>
+                        )}
                       </div>
                       
                       <AnimatePresence>

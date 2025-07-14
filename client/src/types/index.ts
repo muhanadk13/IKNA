@@ -13,6 +13,7 @@ export interface Flashcard {
   createdAt: number;
   lastReviewed?: number;
   tags?: string[];
+  source?: string; // The original note or sentence that inspired this card
 }
 
 export interface Deck {
