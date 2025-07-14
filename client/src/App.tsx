@@ -393,6 +393,18 @@ export default function App() {
     setSuccess('Sample deck imported!');
   };
 
+  // Prevent scrolling on flashcard (study) screen
+  useEffect(() => {
+    if (view === 'study') {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [view]);
+
   return (
     <div className="min-h-screen text-text-primary font-sans p-2 sm:p-4 md:p-6 overflow-x-hidden pb-[100px]" style={{ background: 'linear-gradient(135deg, #1C1F2E 0%, #12131C 100%)' }}>
       {/* Sticky Top Bar */}
@@ -696,31 +708,24 @@ export default function App() {
               className="mx-2.5"
             >
               {/* Study Header */}
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex flex-col items-center justify-center mb-8 w-full max-w-2xl mx-auto">
                 <button
                   onClick={goHome}
-                  className="btn-ghost flex items-center space-x-2"
+                  className="btn-ghost flex items-center space-x-2 self-start ml-[30px] border border-gray-200 rounded-xl shadow-md shadow-gray-200/40 mt-[100px]"
+                  style={{ boxShadow: '0 2px 12px 0 rgba(180,180,180,0.13)' }}
                 >
                   <ArrowLeftCircle className="h-5 w-5" />
                   <span>Back to Decks</span>
                 </button>
-                <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">{selectedDeck.name}</h2>
-                <div className="flex items-center justify-center space-x-4 text-text-secondary">
-                  <span>Card {index + 1} of {roundOrder.length}</span>
-                  <span>•</span>
-                  <span>Round {selectedDeck.round}</span>
+                <div className="text-center w-full -mt-5 pb-5">
+                  <h2 className="text-2xl font-bold mb-2">{selectedDeck.name}</h2>
+                  <div className="flex flex-col items-center justify-center text-text-secondary">
+                    <span className="text-lg font-semibold">Card {index + 1} of {roundOrder.length} &middot; Round {selectedDeck.round}</span>
+                  </div>
                 </div>
-                </div>
-                <div className="w-32"></div> {/* Spacer for centering */}
               </div>
-
-              {/* Progress Bar */}
+              {/* Removed progress label and percent as requested */}
               <div className="mb-8">
-                <div className="flex items-center justify-between text-sm text-text-secondary mb-2">
-                  <span>Progress</span>
-                  <span>{Math.round(((index + 1) / roundOrder.length) * 100)}%</span>
-                </div>
                 <div className="w-full bg-border rounded-full h-2">
                   <div 
                     className="bg-primary h-2 rounded-full transition-all duration-300"
@@ -729,8 +734,36 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Round Finished Overlay */}
+              {roundFinished && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+                  style={{ backdropFilter: 'blur(2px)' }}
+                >
+                  <div className="card w-full max-w-2xl mx-4 flex flex-col items-center justify-center text-center p-16 rounded-3xl shadow-2xl bg-surface">
+                    <Award className="h-20 w-20 text-yellow-400 mx-auto mb-6" />
+                    <h3 className="text-4xl font-bold mb-4">Round Complete!</h3>
+                    <p className="text-text-secondary mb-8 text-xl">
+                      Great job! You've completed this round of study.
+                    </p>
+                    <div className="flex items-center justify-center space-x-6 mt-8 w-full">
+                      <button
+                        onClick={handleNextRound}
+                        className="btn-primary flex items-center space-x-2 px-10 py-4 text-2xl rounded-2xl mx-auto"
+                      >
+                        <SkipForward className="h-6 w-6" />
+                        <span>Next Round</span>
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Card */}
-              {currentCard ? (
+              {!roundFinished && currentCard ? (
                 <div className="space-y-6">
                   <motion.div
                     className="card min-h-[400px] flex flex-col justify-center items-center text-center p-8"
@@ -739,14 +772,13 @@ export default function App() {
                     <div className="w-full max-w-2xl">
                       <div className="mb-8">
                         <h3 className="text-xl font-semibold mb-4">Question</h3>
-                        <p className="text-lg leading-relaxed">{currentCard.question}</p>
+                        <p className="text-lg leading-relaxed mb-[30px]">{currentCard.question}</p>
                         {currentCard.source && (
                           <div className="text-xs text-text-secondary mt-2 italic">
                             Source: {currentCard.source}
                           </div>
                         )}
                       </div>
-                      
                       <AnimatePresence>
                         {showAnswer && (
                           <motion.div
@@ -764,7 +796,7 @@ export default function App() {
                   </motion.div>
 
                   {/* Study Controls */}
-                  <div className="flex items-center justify-center space-x-4">
+                  <div className="flex items-center justify-center space-x-4 mt-[13px]">
                     {!showAnswer ? (
                       <button
                         onClick={() => setShowAnswer(true)}
@@ -807,57 +839,7 @@ export default function App() {
                     )}
                   </div>
                 </div>
-              ) : (
-                <div className="text-center space-y-6">
-                  <div className="card">
-                    <CheckCircle className="h-16 w-16 text-success mx-auto mb-4" />
-                    <h3 className="text-2xl font-bold mb-2">No Cards Available</h3>
-                    <p className="text-text-secondary mb-6">
-                      This deck has no cards to study. Please add some cards first.
-                    </p>
-                    <button
-                      onClick={goHome}
-                      className="btn-primary flex items-center space-x-2 mx-auto"
-                    >
-                      <ArrowLeftCircle className="h-4 w-4" />
-                      <span>Back to Decks</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Round Finished */}
-              {roundFinished && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center space-y-6"
-                >
-                  <div className="card">
-                    <Award className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
-                    <h3 className="text-2xl font-bold mb-2">Round Complete!</h3>
-                    <p className="text-text-secondary mb-6">
-                      Great job! You've completed this round of study.
-                    </p>
-                    <div className="flex items-center justify-center space-x-4">
-                      <button
-                        onClick={handleNextRound}
-                        className="btn-primary flex items-center space-x-2"
-                      >
-                        <SkipForward className="h-4 w-4" />
-                        <span>Next Round</span>
-                      </button>
-                      <button
-                        onClick={handleRestart}
-                        className="btn-ghost flex items-center space-x-2"
-                      >
-                        <RotateCcw className="h-4 w-4" />
-                        <span>Restart</span>
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+              ) : null}
             </motion.div>
           )}
 
