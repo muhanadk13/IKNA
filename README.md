@@ -1,10 +1,13 @@
+<img width="923" height="411" alt="image" src="https://github.com/user-attachments/assets/95c2b189-93c7-4ea9-b596-878ee33ad7d4" />
+
 # IKNA - Smart Flashcard App
 
 I built this because I wanted a better way to study. Traditional flashcard apps were clunky and outdated, so I created a modern web app with AI-powered card generation and spaced repetition algorithms.
 
 ## What I Built
 
-- **React frontend** with TypeScript and smooth animations
+- **React frontend** with TypeScrip![Uploading Screenshot 2025-07-14 at 11.34.43 PM.png…]()
+t and smooth animations
 - **Node.js backend** with JWT authentication
 - **SuperMemo 2 algorithm** for optimal learning intervals
 - **AI integration** for automatic flashcard generation from notes
