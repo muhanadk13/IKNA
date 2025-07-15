@@ -8,8 +8,7 @@ I built this because I wanted a better way to study. Traditional flashcard apps 
 
 ## What I Built
 
-- **React frontend** with TypeScrip![Uploading Screenshot 2025-07-14 at 11.34.43 PM.png…]()
-t and smooth animations
+- **React frontend** with TypeScript and smooth animations
 - **Node.js backend** with JWT authentication
 - **SuperMemo 2 algorithm** for optimal learning intervals
 - **AI integration** for automatic flashcard generation from notes
