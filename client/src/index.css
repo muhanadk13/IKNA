@@ -73,7 +73,8 @@ body {
 .btn-primary {
   background-color: var(--primary);
   color: white;
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 1.1rem;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
   transition: all 0.2s;
@@ -91,7 +92,8 @@ body {
 .btn-secondary {
   background-color: var(--secondary);
   color: white;
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 1.1rem;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
   transition: all 0.2s;
@@ -109,7 +111,8 @@ body {
 .btn-success {
   background-color: var(--success);
   color: white;
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 1.1rem;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
   transition: all 0.2s;
@@ -127,7 +130,8 @@ body {
 .btn-danger {
   background-color: var(--error);
   color: white;
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 1.1rem;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
   transition: all 0.2s;
@@ -145,7 +149,8 @@ body {
 .btn-ghost {
   background-color: transparent;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 1.1rem;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
   transition: all 0.2s;
