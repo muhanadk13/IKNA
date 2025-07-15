@@ -9,9 +9,11 @@ import {
   validateUUID,
   validatePagination,
   createRateLimit,
-  speedLimiter
+  speedLimiter,
+  validateGenerate
 } from '../middleware/validation.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { openAIService } from '../services/openai.js';
 
 const router = express.Router();
 
@@ -21,7 +23,6 @@ const reviewLimiter = createRateLimit(60 * 1000, 60, 'Too many review operations
 
 // Apply authentication to all routes
 router.use(authenticateToken);
-router.use(requireVerified);
 
 // Get all flashcards for user
 router.get('/',
@@ -313,5 +314,13 @@ router.get('/srs/due-today',
     });
   })
 );
+
+router.post('/generate', validateGenerate, asyncHandler(async (req, res) => {
+  const result = await openAIService.generateFlashcards(req.body);
+  res.json({
+    success: true,
+    data: result,
+  });
+}));
 
 export default router; 

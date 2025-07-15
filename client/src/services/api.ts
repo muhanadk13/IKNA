@@ -67,20 +67,27 @@ const generateFallbackFlashcards = (notes: string): GenerateResponse => {
 class ApiService {
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    token?: string
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
+    let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (options.headers) {
+      if (Array.isArray(options.headers)) {
+        options.headers.forEach(([key, value]) => { headers[key] = value; });
+      } else if (typeof options.headers === 'object' && !(options.headers instanceof Headers)) {
+        headers = { ...headers, ...options.headers };
+      }
+    }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
       ...options,
+      headers,
     };
-
     try {
       const response = await fetch(url, config);
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new ApiError(
@@ -90,7 +97,6 @@ class ApiService {
           errorData.error?.details || errorData.details
         );
       }
-
       return await response.json();
     } catch (error) {
       if (error instanceof ApiError) {
@@ -130,14 +136,13 @@ class ApiService {
     return this.request<T>(endpoint, { method: 'DELETE', ...options });
   }
 
-  async generateFlashcards(request: GenerateRequest): Promise<GenerateResponse> {
+  async generateFlashcards(request: GenerateRequest, token?: string): Promise<GenerateResponse> {
     try {
       console.log('Attempting to generate flashcards with API...');
-      const response = await this.request<{ success: boolean; data: GenerateResponse }>('/generate', {
+      const response = await this.request<{ success: boolean; data: GenerateResponse }>('/api/flashcards/generate', {
         method: 'POST',
         body: JSON.stringify(request),
-      });
-      
+      }, token);
       if (response.success) {
         console.log('Successfully generated flashcards via API');
         return response.data;
@@ -146,14 +151,10 @@ class ApiService {
       }
     } catch (error) {
       console.error('API error details:', error);
-      
-      // Only use fallback for network errors or server unavailability
       if (error instanceof ApiError && error.code === 'NETWORK_ERROR') {
         console.warn('API unavailable, using fallback flashcards:', error);
         return generateFallbackFlashcards(request.notes);
       }
-      
-      // For other errors (like API key issues, validation errors, etc.), throw the error
       throw error;
     }
   }
@@ -169,45 +170,33 @@ class ApiService {
   // Retry logic for critical operations
   async generateWithRetry(
     request: GenerateRequest,
+    token?: string,
     maxRetries: number = 3
   ): Promise<GenerateResponse> {
     let lastError: ApiError | null = null;
-
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(`Attempt ${attempt}/${maxRetries} to generate flashcards...`);
-        return await this.generateFlashcards(request);
+        return await this.generateFlashcards(request, token);
       } catch (error) {
         lastError = error as ApiError;
         console.error(`Attempt ${attempt} failed:`, error);
-        
-        // If it's an API key error or validation error, don't retry
         if (error instanceof ApiError && 
             (error.code === 'API_ERROR' || error.message.includes('API key'))) {
           console.error('API configuration error, not retrying:', error);
           throw error;
         }
-        
         if (attempt === maxRetries) {
-          // Only use fallback for network/server issues
           if (error instanceof ApiError && error.code === 'NETWORK_ERROR') {
             console.warn('All retries failed due to network issues, using fallback flashcards');
             return generateFallbackFlashcards(request.notes);
           } else {
-            // For other errors, throw the last error
             throw lastError;
           }
         }
-
-        // Exponential backoff
-        const delay = Math.pow(2, attempt) * 1000;
-        console.log(`Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
-
-    // This should never be reached, but just in case
-    throw lastError || new ApiError('Unknown error occurred', 'UNKNOWN_ERROR');
+    throw lastError;
   }
 }
 

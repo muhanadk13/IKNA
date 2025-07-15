@@ -160,7 +160,7 @@ export default function App() {
     }, 5000);
 
     try {
-      const response = await apiService.generateWithRetry({ notes });
+      const response = await apiService.generateWithRetry({ notes }, authState.token || undefined);
       
       const newDeck: Deck = {
         id: crypto.randomUUID(),
@@ -453,41 +453,16 @@ export default function App() {
           {/* Authentication Status */}
           {authState.isAuthenticated && (
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-text-secondary">
-                Welcome, {authState.user?.username}
-              </span>
               <button
                 onClick={() => setView('profile')}
-                className="btn-ghost p-2 rounded-lg hover:bg-surface/50 transition-colors"
+                className="btn-ghost p-2 rounded-lg hover:bg-surface/50 transition-colors mr-5"
                 title="Profile"
               >
                 <User className="h-5 w-5" />
               </button>
-              <button
-                onClick={handleLogout}
-                className="btn-ghost p-2 rounded-lg hover:bg-surface/50 transition-colors"
-                title="Sign Out"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
             </div>
           )}
           
-          <form className="search-box absolute top-4 right-[55px] z-50" onSubmit={e => e.preventDefault()} autoComplete="off">
-              <input
-                type="text"
-              placeholder=" "
-              value={searchValue}
-              onChange={e => setSearchValue(e.target.value)}
-              id="s"
-              />
-            <button
-              type="reset"
-              onClick={() => setSearchValue('')}
-              tabIndex={-1}
-              aria-label="Clear search"
-            />
-          </form>
         </div>
       </motion.header>
 
@@ -794,6 +769,12 @@ export default function App() {
             </motion.div>
           )}
 
+          {authState.isAuthenticated && view === 'home' && (
+            <div className="flex justify-center items-center w-full mt-12 mb-8">
+              <h1 className="text-5xl font-extrabold text-center">Welcome{authState.user?.username ? `, ${authState.user.username}` : ''}!</h1>
+            </div>
+          )}
+
           {authState.isAuthenticated && view === 'study' && selectedDeck && (
             <motion.div
               key="study"
@@ -841,9 +822,7 @@ export default function App() {
                   <div className="card w-full max-w-2xl mx-4 flex flex-col items-center justify-center text-center p-16 rounded-3xl shadow-2xl bg-surface">
                     <Award className="h-20 w-20 text-yellow-400 mx-auto mb-6" />
                     <h3 className="text-4xl font-bold mb-4">Round Complete!</h3>
-                    <p className="text-text-secondary mb-8 text-xl">
-                      Great job! You've completed this round of study.
-                    </p>
+                    <p className="text-text-secondary mb-6">Great job! You've completed this round of study.</p>
                     <div className="flex items-center justify-center space-x-6 mt-8 w-full">
                       <button
                         onClick={handleNextRound}
@@ -851,6 +830,20 @@ export default function App() {
                       >
                         <SkipForward className="h-6 w-6" />
                         <span>Next Round</span>
+                      </button>
+                      <button
+                        onClick={handleRestart}
+                        className="btn-ghost flex items-center space-x-2 px-10 py-4 text-2xl rounded-2xl mx-auto"
+                      >
+                        <RotateCcw className="h-6 w-6" />
+                        <span>Restart</span>
+                      </button>
+                      <button
+                        onClick={goHome}
+                        className="btn-ghost flex items-center space-x-2 px-10 py-4 text-2xl rounded-2xl mx-auto"
+                      >
+                        <Home className="h-6 w-6" />
+                        <span>Return Home</span>
                       </button>
                     </div>
                   </div>

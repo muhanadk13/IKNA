@@ -145,82 +145,64 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={onBack}
-            className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            <X className="h-5 w-5 mr-2" />
-            Back
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
-          <div className="w-8"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 py-10 px-4 sm:px-8 md:px-12 lg:px-20 flex flex-col items-center">
+      <div className="max-w-2xl w-full mx-auto bg-white rounded-3xl shadow-2xl p-8 relative px-[13px]">
+        {/* Back Button */}
+        <button
+          onClick={onBack}
+          className="absolute left-6 top-6 flex items-center font-bold p-0 m-0 bg-transparent border-none shadow-none"
+          style={{ color: 'white', fontSize: '75px', background: 'none', border: 'none', boxShadow: 'none', lineHeight: 1, cursor: 'pointer', transition: 'color 0.2s' }}
+          onMouseOver={e => (e.currentTarget.style.color = '#e5e5e5')}
+          onMouseOut={e => (e.currentTarget.style.color = 'white')}
+        >
+          {'<'}
+        </button>
+
+        {/* Profile Avatar */}
+        <div className="flex flex-col items-center mt-2 mb-8">
+          <div className="h-36 w-36 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center shadow-xl mb-3 border-4 border-white">
+            <User className="h-20 w-20 text-white" />
+          </div>
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-1 mr-[10px] mb-[10px]">{user?.username}</h1>
+          <p className="text-gray-500 text-lg mr-[10px] mb-[10px]">{user?.email}</p>
         </div>
 
-        {/* Error/Success Messages */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center p-4 bg-red-50 border border-red-200 rounded-lg mb-6"
-          >
-            <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
-            <span className="text-sm text-red-700">{error}</span>
-          </motion.div>
-        )}
-
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg mb-6"
-          >
-            <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-            <span className="text-sm text-green-700">{success}</span>
-          </motion.div>
-        )}
+        {/* Divider */}
+        <div className="my-8 mr-[10px]" />
 
         {/* Profile Information */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
+        <div className="mb-10 shadow-lg rounded-2xl bg-white p-6 mr-[10px]">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center"><Mail className="h-5 w-5 mr-2 text-primary" />Profile Information</h2>
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                className="flex items-center text-primary hover:text-blue-700 font-medium transition-colors shadow-md rounded-xl bg-white/80 px-4 py-2 mr-[10px]"
               >
                 <Edit3 className="h-4 w-4 mr-1" />
                 Edit
               </button>
             )}
           </div>
-
           {isEditing ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Username
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2 mb-[10px]">Username</label>
                 <input
                   type="text"
                   value={editForm.username}
                   onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm"
                   disabled={isLoading}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2 mb-[10px]">Email</label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm"
                   disabled={isLoading}
                 />
               </div>
@@ -228,7 +210,7 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
                 <button
                   onClick={handleSaveProfile}
                   disabled={isLoading}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="flex items-center px-4 py-2 bg-primary text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all disabled:opacity-50"
                 >
                   <Save className="h-4 w-4 mr-2" />
                   Save
@@ -239,7 +221,7 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
                     setEditForm({ username: user?.username || '', email: user?.email || '' });
                   }}
                   disabled={isLoading}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors rounded-xl shadow-md bg-white/80"
                 >
                   Cancel
                 </button>
@@ -247,69 +229,61 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center">
-                <User className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex items-center mb-[10px] ml-[10px]">
                 <div>
-                  <p className="text-sm text-gray-500">Username</p>
-                  <p className="font-medium">{user?.username}</p>
+                  <p className="text-sm text-gray-500 mb-[10px]">Username</p>
+                  <p className="font-medium mb-[10px] flex items-center">{user?.username} <User className="h-5 w-5 text-gray-400 align-middle" /></p>
                 </div>
               </div>
-              <div className="flex items-center">
-                <Mail className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex items-center mb-[10px] ml-[10px]">
                 <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-medium">{user?.email}</p>
+                  <p className="text-sm text-gray-500 mb-[10px]">Email</p>
+                  <p className="font-medium mb-[10px] flex items-center">{user?.email} <Mail className="h-5 w-5 text-gray-400 align-middle" /></p>
                 </div>
               </div>
-              <div className="flex items-center">
-                <Calendar className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex items-center mb-[10px] ml-[10px]">
                 <div>
-                  <p className="text-sm text-gray-500">Member since</p>
-                  <p className="font-medium">
-                    {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-                  </p>
+                  <p className="text-sm text-gray-500 mb-[10px]">Member since</p>
+                  <p className="font-medium mb-[10px] flex items-center">{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'} <Calendar className="h-5 w-5 text-gray-400 align-middle" /></p>
                 </div>
               </div>
-              <div className="flex items-center">
-                <Check className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex items-center mb-[10px] ml-[10px]">
                 <div>
-                  <p className="text-sm text-gray-500">Email verified</p>
-                  <p className={`font-medium ${user?.is_verified ? 'text-green-600' : 'text-red-600'}`}>
-                    {user?.is_verified ? 'Yes' : 'No'}
-                  </p>
+                  <p className="text-sm text-gray-500 mb-[10px]">Email verified</p>
+                  <p className={`font-medium flex items-center ${user?.is_verified ? 'text-green-600' : 'text-red-600'} mb-[10px]`}>{user?.is_verified ? 'Yes' : 'No'} <Check className="h-5 w-5 text-gray-400 align-middle" /></p>
                 </div>
               </div>
             </div>
           )}
         </div>
 
+        {/* Divider */}
+        <div className="my-8 mr-[10px]" />
+
         {/* Change Password */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
+        <div className="mb-10 shadow-lg rounded-2xl bg-white p-6 mr-[10px]">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center"><Shield className="h-5 w-5 mr-2 text-primary" />Change Password</h2>
             {!isChangingPassword && (
               <button
                 onClick={() => setIsChangingPassword(true)}
-                className="flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                className="flex items-center text-primary hover:text-blue-700 font-medium transition-colors shadow-md rounded-xl bg-white/80 px-4 py-2 mr-[10px]"
               >
-                <Shield className="h-4 w-4 mr-1" />
+                <Edit3 className="h-4 w-4 mr-1" />
                 Change
               </button>
             )}
           </div>
-
           {isChangingPassword ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Password
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2 mb-[10px]">Current Password</label>
                 <div className="relative">
                   <input
                     type={showCurrentPassword ? 'text' : 'password'}
                     value={passwordForm.currentPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 pr-10 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm"
                     disabled={isLoading}
                   />
                   <button
@@ -322,15 +296,13 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  New Password
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2 mb-[10px]">New Password</label>
                 <div className="relative">
                   <input
                     type={showNewPassword ? 'text' : 'password'}
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 pr-10 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm"
                     disabled={isLoading}
                   />
                   <button
@@ -343,15 +315,13 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm New Password
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2 mb-[10px]">Confirm New Password</label>
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 pr-10 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent shadow-sm"
                     disabled={isLoading}
                   />
                   <button
@@ -367,7 +337,7 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
                 <button
                   onClick={handleChangePassword}
                   disabled={isLoading || !passwordForm.currentPassword || !passwordForm.newPassword || !confirmNewPassword}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="flex items-center px-4 py-2 bg-primary text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all disabled:opacity-50"
                 >
                   <Save className="h-4 w-4 mr-2" />
                   Update Password
@@ -379,65 +349,60 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
                     setConfirmNewPassword('');
                   }}
                   disabled={isLoading}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors rounded-xl shadow-md bg-white/80"
                 >
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <p className="text-gray-600">Keep your account secure by changing your password regularly.</p>
+            <p className="text-gray-600 mb-[10px]">Keep your account secure by changing your password regularly.</p>
           )}
         </div>
 
-        {/* Account Actions */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Account Actions</h2>
-          
-          <div className="space-y-4">
-            <button
-              onClick={handleLogout}
-              disabled={isLoading}
-              className="flex items-center w-full px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              <LogOut className="h-5 w-5 mr-3" />
-              Sign Out
-            </button>
+        {/* Divider */}
+        <div className="my-8 mr-[10px]" />
 
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={isLoading}
-              className="flex items-center w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <Trash2 className="h-5 w-5 mr-3" />
-              Delete Account
-            </button>
-          </div>
+        {/* Account Actions */}
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+          <button
+            onClick={handleLogout}
+            disabled={isLoading}
+            className="flex items-center px-6 py-3 bg-white text-primary hover:bg-blue-50 rounded-xl shadow-lg transition-all w-full md:w-auto font-semibold"
+            style={{ width: '200px' }}
+          >
+            <LogOut className="h-5 w-5 mr-3" />
+            Sign Out
+          </button>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={isLoading}
+            className="flex items-center px-6 py-3 bg-gradient-to-r from-red-400 to-red-600 text-white hover:from-red-500 hover:to-red-700 rounded-xl shadow-lg transition-all w-full md:w-auto font-semibold"
+            style={{ width: '200px' }}
+          >
+            <Trash2 className="h-5 w-5 mr-3" />
+            Delete Account
+          </button>
         </div>
 
         {/* Delete Account Confirmation Modal */}
         {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 mr-[10px]">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-xl p-6 max-w-md w-full"
+              className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl mr-[10px]"
             >
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Delete Account</h3>
-              <p className="text-gray-600 mb-4">
-                This action cannot be undone. All your data will be permanently deleted.
-              </p>
-              
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 mb-[10px]">Delete Account</h3>
+              <p className="text-gray-600 mb-4 mb-[10px]">This action cannot be undone. All your data will be permanently deleted.</p>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Enter your password to confirm
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2 mb-[10px]">Enter your password to confirm</label>
                 <div className="relative">
                   <input
                     type={showDeletePassword ? 'text' : 'password'}
                     value={deletePassword}
                     onChange={(e) => setDeletePassword(e.target.value)}
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-3 py-2 pr-10 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent shadow-sm"
                     placeholder="Enter your password"
                   />
                   <button
@@ -449,12 +414,11 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
                   </button>
                 </div>
               </div>
-
               <div className="flex space-x-3">
                 <button
                   onClick={handleDeleteAccount}
                   disabled={isLoading || !deletePassword}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-red-400 to-red-600 text-white rounded-xl shadow-lg hover:from-red-500 hover:to-red-700 transition-all disabled:opacity-50"
                 >
                   Delete Account
                 </button>
@@ -464,7 +428,7 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
                     setDeletePassword('');
                   }}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  className="flex-1 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors rounded-xl shadow-md bg-white/80"
                 >
                   Cancel
                 </button>
