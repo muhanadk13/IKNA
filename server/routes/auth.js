@@ -6,7 +6,6 @@ import {
   validateLogin, 
   validateChangePassword, 
   validateResetPassword,
-  sanitizeInput,
   createRateLimit,
   speedLimiter
 } from '../middleware/validation.js';
@@ -22,7 +21,6 @@ const registerLimiter = createRateLimit(60 * 60 * 1000, 3, 'Too many registratio
 router.post('/register', 
   registerLimiter,
   speedLimiter,
-  sanitizeInput,
   validateRegister,
   asyncHandler(async (req, res) => {
     const { email, username, password } = req.body;
@@ -44,7 +42,6 @@ router.post('/register',
 router.post('/login',
   authLimiter,
   speedLimiter,
-  sanitizeInput,
   validateLogin,
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
@@ -76,7 +73,6 @@ router.post('/logout',
 
 // Verify email
 router.post('/verify-email',
-  sanitizeInput,
   asyncHandler(async (req, res) => {
     const { token } = req.body;
     
@@ -93,7 +89,6 @@ router.post('/verify-email',
 // Request password reset
 router.post('/forgot-password',
   authLimiter,
-  sanitizeInput,
   asyncHandler(async (req, res) => {
     const { email } = req.body;
     
@@ -122,7 +117,6 @@ router.post('/forgot-password',
 // Reset password
 router.post('/reset-password',
   authLimiter,
-  sanitizeInput,
   validateResetPassword,
   asyncHandler(async (req, res) => {
     const { token, newPassword } = req.body;
@@ -140,7 +134,6 @@ router.post('/reset-password',
 // Change password
 router.post('/change-password',
   authenticateToken,
-  sanitizeInput,
   validateChangePassword,
   asyncHandler(async (req, res) => {
     const { currentPassword, newPassword } = req.body;
@@ -184,7 +177,6 @@ router.get('/profile',
 // Update user profile
 router.put('/profile',
   authenticateToken,
-  sanitizeInput,
   asyncHandler(async (req, res) => {
     const profile = await AuthService.updateUserProfile(req.user.id, req.body);
     
@@ -199,7 +191,6 @@ router.put('/profile',
 // Delete account
 router.delete('/account',
   authenticateToken,
-  sanitizeInput,
   asyncHandler(async (req, res) => {
     const { password } = req.body;
     

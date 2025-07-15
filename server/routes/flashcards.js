@@ -8,8 +8,8 @@ import {
   validateReview,
   validateUUID,
   validatePagination,
-  sanitizeInput,
-  createRateLimit
+  createRateLimit,
+  speedLimiter
 } from '../middleware/validation.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
@@ -96,7 +96,6 @@ router.get('/:flashcardId',
 // Create flashcard
 router.post('/',
   flashcardLimiter,
-  sanitizeInput,
   validateCreateFlashcard,
   asyncHandler(async (req, res) => {
     const { deckId, ...cardData } = req.body;
@@ -123,7 +122,6 @@ router.post('/',
 // Update flashcard
 router.put('/:flashcardId',
   flashcardLimiter,
-  sanitizeInput,
   validateUUID('flashcardId'),
   validateUpdateFlashcard,
   asyncHandler(async (req, res) => {
@@ -154,7 +152,6 @@ router.delete('/:flashcardId',
 // Review flashcard
 router.post('/:flashcardId/review',
   reviewLimiter,
-  sanitizeInput,
   validateUUID('flashcardId'),
   validateReview,
   asyncHandler(async (req, res) => {
@@ -229,7 +226,6 @@ router.get('/search/:term',
 // Bulk update flashcards
 router.put('/bulk/update',
   flashcardLimiter,
-  sanitizeInput,
   asyncHandler(async (req, res) => {
     const { flashcardIds, updates } = req.body;
     
@@ -255,7 +251,6 @@ router.put('/bulk/update',
 // Bulk delete flashcards
 router.delete('/bulk/delete',
   flashcardLimiter,
-  sanitizeInput,
   asyncHandler(async (req, res) => {
     const { flashcardIds } = req.body;
     

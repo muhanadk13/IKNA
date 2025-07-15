@@ -39,12 +39,16 @@ import {
   FileText,
   Lightbulb,
   Bookmark,
-  Share2
+  Share2,
+  LogOut
 } from 'lucide-react';
-import type { Rating, Deck, Flashcard, View } from './types';
+import type { Rating, Deck, Flashcard, View, AuthState } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { apiService } from './services/api';
+import { authService } from './services/auth';
 import { reviewCard, calculateStats, createFlashcard } from './utils/spacedRepetition';
+import AuthContainer from './components/AuthContainer';
+import Profile from './components/Profile';
 
 // Constants
 const INITIAL_RATINGS: Record<Rating, number> = { again: 0, hard: 0, good: 0, easy: 0 };
@@ -52,6 +56,14 @@ const INITIAL_EASE_FACTOR = 2.5;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export default function App() {
+  // Authentication state
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    token: null,
+    isAuthenticated: false,
+    isLoading: true
+  });
+
   const [notes, setNotes] = useState<string>('');
   const [deckName, setDeckName] = useState<string>('');
   const [decks, setDecks] = useLocalStorage<Deck[]>('decks', []);
@@ -100,6 +112,15 @@ export default function App() {
     return { totalCards, learnedCards, dueCards, totalReviews, accuracy };
   };
 
+  // Subscribe to authentication state changes
+  useEffect(() => {
+    const unsubscribe = authService.subscribe((state) => {
+      setAuthState(state);
+    });
+
+    return unsubscribe;
+  }, []);
+
   // Reset index when round is finished
   useEffect(() => {
     if (selectedDeck && selectedDeck.index >= selectedDeck.roundOrder.length) {
@@ -110,6 +131,16 @@ export default function App() {
       );
     }
   }, [selectedDeck, setDecks]);
+
+  // Authentication handlers
+  const handleAuthSuccess = () => {
+    setView('home');
+  };
+
+  const handleLogout = () => {
+    setView('home');
+    setDecks([]);
+  };
 
   // Generate new deck from notes
   const handleGenerate = async () => {
@@ -418,6 +449,30 @@ export default function App() {
           <div className="flex items-center space-x-4">
             <img src="/dist/assets/logo.png" alt="Logo" className="h-[100px] w-[100px] object-contain ml-[40px]" />
           </div>
+          
+          {/* Authentication Status */}
+          {authState.isAuthenticated && (
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-text-secondary">
+                Welcome, {authState.user?.username}
+              </span>
+              <button
+                onClick={() => setView('profile')}
+                className="btn-ghost p-2 rounded-lg hover:bg-surface/50 transition-colors"
+                title="Profile"
+              >
+                <User className="h-5 w-5" />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="btn-ghost p-2 rounded-lg hover:bg-surface/50 transition-colors"
+                title="Sign Out"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            </div>
+          )}
+          
           <form className="search-box absolute top-4 right-[55px] z-50" onSubmit={e => e.preventDefault()} autoComplete="off">
               <input
                 type="text"
@@ -440,7 +495,47 @@ export default function App() {
       <div className="mx-5">
         <main className="py-8">
         <AnimatePresence mode="wait">
-          {view === 'home' && (
+          {/* Loading State */}
+          {authState.isLoading && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center justify-center min-h-[60vh]"
+            >
+              <div className="flex flex-col items-center space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <p className="text-text-secondary">Loading...</p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Authentication Views */}
+          {!authState.isAuthenticated && !authState.isLoading && (
+            <motion.div
+              key="auth"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <AuthContainer onAuthSuccess={handleAuthSuccess} />
+            </motion.div>
+          )}
+
+          {/* Profile View */}
+          {authState.isAuthenticated && view === 'profile' && (
+            <motion.div
+              key="profile"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <Profile onLogout={handleLogout} onBack={() => setView('home')} />
+            </motion.div>
+          )}
+
+          {/* Main App Views (only show when authenticated) */}
+          {authState.isAuthenticated && view === 'home' && (
             <motion.div
               key="home"
               initial={{ opacity: 0, y: 20 }}
@@ -699,7 +794,7 @@ export default function App() {
             </motion.div>
           )}
 
-          {view === 'study' && selectedDeck && (
+          {authState.isAuthenticated && view === 'study' && selectedDeck && (
             <motion.div
               key="study"
               initial={{ opacity: 0, x: 20 }}
@@ -843,7 +938,7 @@ export default function App() {
             </motion.div>
           )}
 
-          {view === 'stats' && selectedDeck && (
+          {authState.isAuthenticated && view === 'stats' && selectedDeck && (
             <motion.div
               key="stats"
               initial={{ opacity: 0, y: 20 }}

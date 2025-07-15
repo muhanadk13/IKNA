@@ -126,3 +126,45 @@ export interface Toast {
   message: string;
   duration?: number;
 } 
+
+// Authentication types
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  is_verified: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  username: string;
+  password: string;
+}
+
+export interface PasswordResetData {
+  email: string;
+}
+
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ProfileUpdateData {
+  username?: string;
+  email?: string;
+} 

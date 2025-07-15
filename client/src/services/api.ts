@@ -84,10 +84,10 @@ class ApiService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new ApiError(
-          errorData.message || `HTTP ${response.status}`,
-          errorData.code || 'UNKNOWN_ERROR',
+          errorData.error?.message || errorData.message || `HTTP ${response.status}`,
+          errorData.error?.code || errorData.code || 'UNKNOWN_ERROR',
           response.status,
-          errorData.details
+          errorData.error?.details || errorData.details
         );
       }
 
@@ -103,6 +103,31 @@ class ApiService {
         error
       );
     }
+  }
+
+  // General HTTP methods for authentication and other API calls
+  async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET', ...options });
+  }
+
+  async post<T>(endpoint: string, data?: any, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+      ...options,
+    });
+  }
+
+  async put<T>(endpoint: string, data?: any, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+      ...options,
+    });
+  }
+
+  async delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, { method: 'DELETE', ...options });
   }
 
   async generateFlashcards(request: GenerateRequest): Promise<GenerateResponse> {

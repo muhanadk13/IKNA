@@ -4,13 +4,12 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
-import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'xss-clean';
+// import xss from 'xss-clean';
 import hpp from 'hpp';
 import cron from 'node-cron';
 
 import { errorHandler, notFound, asyncHandler } from './middleware/errorHandler.js';
-import { validateGenerate, sanitizeInput, dbRateLimit } from './middleware/validation.js';
+import { validateGenerate, dbRateLimit } from './middleware/validation.js';
 import { openAIService } from './services/openai.js';
 import authRoutes from './routes/auth.js';
 import deckRoutes from './routes/decks.js';
@@ -60,13 +59,10 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter);
 
 // Database-based rate limiting
-app.use(dbRateLimit);
+// app.use(dbRateLimit);
 
 // Input sanitization
-app.use(mongoSanitize());
-app.use(xss());
 app.use(hpp());
-app.use(sanitizeInput);
 
 // Compression
 app.use(compression());

@@ -31,8 +31,9 @@ export const createRateLimit = (windowMs, max, message) => {
 export const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutes
   delayAfter: 5, // Allow 5 requests per windowMs without delay
-  delayMs: 500, // Add 500ms delay per request after delayAfter
+  delayMs: () => 500, // Add 500ms delay per request after delayAfter
   maxDelayMs: 20000, // Maximum delay of 20 seconds
+  validate: { delayMs: false } // Disable validation warning
 });
 
 // Database-based rate limiting
@@ -216,53 +217,6 @@ export const validateCreateFlashcard = createValidator(flashcardSchemas.create);
 export const validateUpdateFlashcard = createValidator(flashcardSchemas.update);
 export const validateReview = createValidator(flashcardSchemas.review);
 export const validateGenerate = createValidator(generateSchemas.generate);
-
-// Input sanitization middleware
-export const sanitizeInput = (req, res, next) => {
-  const sanitizeString = (str) => {
-    if (typeof str !== 'string') return str;
-    
-    return str
-      .replace(/[<>]/g, '') // Remove < and >
-      .replace(/javascript:/gi, '') // Remove javascript: protocol
-      .replace(/on\w+=/gi, '') // Remove event handlers
-      .trim();
-  };
-
-  const sanitizeObject = (obj) => {
-    if (typeof obj !== 'object' || obj === null) return obj;
-    
-    if (Array.isArray(obj)) {
-      return obj.map(sanitizeObject);
-    }
-    
-    const sanitized = {};
-    for (const [key, value] of Object.entries(obj)) {
-      if (typeof value === 'string') {
-        sanitized[key] = sanitizeString(value);
-      } else if (typeof value === 'object') {
-        sanitized[key] = sanitizeObject(value);
-      } else {
-        sanitized[key] = value;
-      }
-    }
-    return sanitized;
-  };
-
-  if (req.body) {
-    req.body = sanitizeObject(req.body);
-  }
-
-  if (req.query) {
-    req.query = sanitizeObject(req.query);
-  }
-
-  if (req.params) {
-    req.params = sanitizeObject(req.params);
-  }
-
-  next();
-};
 
 // UUID validation middleware
 export const validateUUID = (paramName) => {

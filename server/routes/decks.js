@@ -2,14 +2,14 @@ import express from 'express';
 import { DeckService } from '../services/decks.js';
 import { FlashcardService } from '../services/flashcards.js';
 import { authenticateToken, requireVerified } from '../middleware/auth.js';
-import { 
-  validateCreateDeck, 
+import {
+  validateCreateDeck,
   validateUpdateDeck,
   validateGenerate,
   validateUUID,
   validatePagination,
-  sanitizeInput,
-  createRateLimit
+  createRateLimit,
+  speedLimiter
 } from '../middleware/validation.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
@@ -28,7 +28,7 @@ router.get('/',
   validatePagination,
   asyncHandler(async (req, res) => {
     const { search, difficulty, sortBy, sortOrder, limit, offset } = req.query;
-    
+
     const decks = await DeckService.getUserDecks(req.user.id, {
       search,
       difficulty,
@@ -37,7 +37,7 @@ router.get('/',
       limit,
       offset
     });
-    
+
     res.json({
       success: true,
       data: { decks }
@@ -48,11 +48,10 @@ router.get('/',
 // Create new deck
 router.post('/',
   deckLimiter,
-  sanitizeInput,
   validateCreateDeck,
   asyncHandler(async (req, res) => {
     const deck = await DeckService.createDeck(req.user.id, req.body);
-    
+
     res.status(201).json({
       success: true,
       message: 'Deck created successfully',
@@ -67,7 +66,7 @@ router.get('/:deckId',
   validateUUID('deckId'),
   asyncHandler(async (req, res) => {
     const deck = await DeckService.getDeck(req.user.id, req.params.deckId);
-    
+
     res.json({
       success: true,
       data: { deck }
@@ -78,12 +77,11 @@ router.get('/:deckId',
 // Update deck
 router.put('/:deckId',
   deckLimiter,
-  sanitizeInput,
   validateUUID('deckId'),
   validateUpdateDeck,
   asyncHandler(async (req, res) => {
     const deck = await DeckService.updateDeck(req.user.id, req.params.deckId, req.body);
-    
+
     res.json({
       success: true,
       message: 'Deck updated successfully',
@@ -98,7 +96,7 @@ router.delete('/:deckId',
   validateUUID('deckId'),
   asyncHandler(async (req, res) => {
     await DeckService.deleteDeck(req.user.id, req.params.deckId);
-    
+
     res.json({
       success: true,
       message: 'Deck deleted successfully'
@@ -112,7 +110,7 @@ router.get('/:deckId/stats',
   validateUUID('deckId'),
   asyncHandler(async (req, res) => {
     const stats = await DeckService.getDeckStats(req.user.id, req.params.deckId);
-    
+
     res.json({
       success: true,
       data: { stats }
@@ -126,13 +124,13 @@ router.get('/:deckId/study',
   validateUUID('deckId'),
   asyncHandler(async (req, res) => {
     const { limit, includeNew, includeDue } = req.query;
-    
+
     const cards = await DeckService.getStudySession(req.user.id, req.params.deckId, {
       limit: parseInt(limit) || 20,
       includeNew: includeNew !== 'false',
       includeDue: includeDue !== 'false'
     });
-    
+
     res.json({
       success: true,
       data: { cards }
@@ -146,7 +144,7 @@ router.get('/:deckId/export',
   validateUUID('deckId'),
   asyncHandler(async (req, res) => {
     const deckData = await DeckService.exportDeck(req.user.id, req.params.deckId);
-    
+
     res.json({
       success: true,
       data: { deck: deckData }
@@ -157,10 +155,9 @@ router.get('/:deckId/export',
 // Import deck
 router.post('/import',
   deckLimiter,
-  sanitizeInput,
   asyncHandler(async (req, res) => {
     const deck = await DeckService.importDeck(req.user.id, req.body);
-    
+
     res.status(201).json({
       success: true,
       message: 'Deck imported successfully',
@@ -172,18 +169,17 @@ router.post('/import',
 // Generate flashcards for deck
 router.post('/:deckId/generate',
   deckLimiter,
-  sanitizeInput,
   validateUUID('deckId'),
   validateGenerate,
   asyncHandler(async (req, res) => {
     const { notes, count, difficulty, format, tags } = req.body;
-    
+
     const cards = await FlashcardService.generateFlashcards(req.user.id, req.params.deckId, notes, {
       count,
       difficulty,
       format
     });
-    
+
     res.status(201).json({
       success: true,
       message: `${cards.length} flashcards generated successfully`,
@@ -199,7 +195,7 @@ router.get('/:deckId/flashcards',
   validatePagination,
   asyncHandler(async (req, res) => {
     const { difficulty, status, sortBy, sortOrder, limit, offset } = req.query;
-    
+
     const cards = await FlashcardService.getDeckFlashcards(req.user.id, req.params.deckId, {
       difficulty,
       status,
@@ -208,7 +204,7 @@ router.get('/:deckId/flashcards',
       limit,
       offset
     });
-    
+
     res.json({
       success: true,
       data: { cards }
@@ -219,11 +215,10 @@ router.get('/:deckId/flashcards',
 // Create flashcard in deck
 router.post('/:deckId/flashcards',
   deckLimiter,
-  sanitizeInput,
   validateUUID('deckId'),
   asyncHandler(async (req, res) => {
     const card = await FlashcardService.createFlashcard(req.user.id, req.params.deckId, req.body);
-    
+
     res.status(201).json({
       success: true,
       message: 'Flashcard created successfully',
@@ -235,11 +230,10 @@ router.post('/:deckId/flashcards',
 // Bulk create flashcards
 router.post('/:deckId/flashcards/bulk',
   deckLimiter,
-  sanitizeInput,
   validateUUID('deckId'),
   asyncHandler(async (req, res) => {
     const { cards } = req.body;
-    
+
     if (!Array.isArray(cards) || cards.length === 0) {
       return res.status(400).json({
         error: {
@@ -248,9 +242,9 @@ router.post('/:deckId/flashcards/bulk',
         }
       });
     }
-    
+
     const createdCards = await FlashcardService.createFlashcards(req.user.id, req.params.deckId, cards);
-    
+
     res.status(201).json({
       success: true,
       message: `${createdCards.length} flashcards created successfully`,
@@ -264,7 +258,7 @@ router.get('/stats/overview',
   deckLimiter,
   asyncHandler(async (req, res) => {
     const stats = await DeckService.getUserStudyStats(req.user.id);
-    
+
     res.json({
       success: true,
       data: { stats }
@@ -279,13 +273,13 @@ router.get('/search/:term',
   asyncHandler(async (req, res) => {
     const { term } = req.params;
     const { limit, offset } = req.query;
-    
+
     const decks = await DeckService.getUserDecks(req.user.id, {
       search: term,
       limit,
       offset
     });
-    
+
     res.json({
       success: true,
       data: { decks }
