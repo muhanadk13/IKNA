@@ -1,4 +1,6 @@
 <img width="923" height="411" alt="image" src="https://github.com/user-attachments/assets/95c2b189-93c7-4ea9-b596-878ee33ad7d4" />
+<img width="1359" height="535" alt="Screenshot 2025-07-14 at 11 53 45 PM" src="https://github.com/user-attachments/assets/7f06c5fc-f77f-4a5e-9d0f-6355634e0665" />
+<img width="1363" height="827" alt="Screenshot 2025-07-14 at 11 49 18 PM" src="https://github.com/user-attachments/assets/cc522b46-3b9b-4917-ae00-a9f5fd2bbe92" />
 
 # IKNA - Smart Flashcard App
 
