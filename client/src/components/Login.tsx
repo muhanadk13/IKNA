@@ -57,7 +57,7 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword, on
           <p className="text-gray-600">Sign in to continue your learning journey</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" role="form" aria-label="Login form">
           {/* Email Field */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -74,6 +74,7 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword, on
                 placeholder="Enter your email"
                 required
                 disabled={isLoading}
+                aria-label="Email address"
               />
             </div>
           </div>
@@ -94,12 +95,14 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword, on
                 placeholder="Enter your password"
                 required
                 disabled={isLoading}
+                aria-label="Password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 disabled={isLoading}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -134,6 +137,7 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword, on
             type="submit"
             disabled={isLoading || !credentials.email || !credentials.password}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Sign in"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
@@ -152,6 +156,7 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword, on
               onClick={onSwitchToForgotPassword}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
               disabled={isLoading}
+              aria-label="Forgot your password?"
             >
               Forgot your password?
             </button>
@@ -174,6 +179,7 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword, on
               onClick={onSwitchToRegister}
               className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
               disabled={isLoading}
+              aria-label="Sign up"
             >
               Sign up
             </button>

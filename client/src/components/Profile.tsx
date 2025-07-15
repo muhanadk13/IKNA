@@ -152,6 +152,8 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
           onClick={onBack}
           className="absolute left-6 top-6 flex items-center font-bold p-0 m-0 bg-transparent border-none shadow-none"
           style={{ color: 'white', fontSize: '75px', background: 'none', border: 'none', boxShadow: 'none', lineHeight: 1, cursor: 'pointer', transition: 'color 0.2s' }}
+          aria-label="Go back"
+          tabIndex={0}
           onMouseOver={e => (e.currentTarget.style.color = '#e5e5e5')}
           onMouseOut={e => (e.currentTarget.style.color = 'white')}
         >
@@ -178,6 +180,7 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
               <button
                 onClick={() => setIsEditing(true)}
                 className="flex items-center text-primary hover:text-blue-700 font-medium transition-colors shadow-md rounded-xl bg-white/80 px-4 py-2 mr-[10px]"
+                aria-label="Edit profile information"
               >
                 <Edit3 className="h-4 w-4 mr-1" />
                 Edit
@@ -268,6 +271,7 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
               <button
                 onClick={() => setIsChangingPassword(true)}
                 className="flex items-center text-primary hover:text-blue-700 font-medium transition-colors shadow-md rounded-xl bg-white/80 px-4 py-2 mr-[10px]"
+                aria-label="Change password"
               >
                 <Edit3 className="h-4 w-4 mr-1" />
                 Change
@@ -379,6 +383,7 @@ export default function Profile({ onLogout, onBack }: ProfileProps) {
             disabled={isLoading}
             className="flex items-center px-6 py-3 bg-gradient-to-r from-red-400 to-red-600 text-white hover:from-red-500 hover:to-red-700 rounded-xl shadow-lg transition-all w-full md:w-auto font-semibold"
             style={{ width: '200px' }}
+            aria-label="Delete account"
           >
             <Trash2 className="h-5 w-5 mr-3" />
             Delete Account

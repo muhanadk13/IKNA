@@ -72,7 +72,7 @@ export default function Register({ onSwitchToLogin, onRegisterSuccess }: Registe
           <p className="text-gray-600">Join us and start your learning journey</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" role="form" aria-label="Registration form">
           {/* Username Field */}
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
@@ -138,6 +138,7 @@ export default function Register({ onSwitchToLogin, onRegisterSuccess }: Registe
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 disabled={isLoading}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -192,6 +193,7 @@ export default function Register({ onSwitchToLogin, onRegisterSuccess }: Registe
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 disabled={isLoading}
+                aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
               >
                 {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>

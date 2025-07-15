@@ -272,16 +272,25 @@ export default function App() {
     setDecks((prev) =>
       prev.map((deck) => {
         if (deck.id !== selectedDeckId) return deck;
-        const order = deck.flashcards.reduce<number[]>((arr, c, idx) => {
+        
+        // Get cards that are not easy (not finished)
+        const unfinishedCards = deck.flashcards.reduce<number[]>((arr, c, idx) => {
           if (!c.easy) arr.push(idx);
           return arr;
         }, []);
+        
+        // If all cards are finished, reset them all to unfinished for a new round
+        const order = unfinishedCards.length > 0 ? unfinishedCards : deck.flashcards.map((_, idx) => idx);
+        
         return {
           ...deck,
           index: 0,
           round: deck.round + 1,
           roundFinished: false,
           roundOrder: order,
+          // Reset all cards to unfinished if they were all finished
+          flashcards: unfinishedCards.length === 0 ? deck.flashcards.map(c => ({ ...c, easy: false })) : deck.flashcards,
+          finished: false,
         };
       })
     );
@@ -457,6 +466,7 @@ export default function App() {
                 onClick={() => setView('profile')}
                 className="btn-ghost p-2 rounded-lg hover:bg-surface/50 transition-colors mr-5"
                 title="Profile"
+                aria-label="Open profile"
               >
                 <User className="h-5 w-5" />
               </button>
@@ -468,7 +478,7 @@ export default function App() {
 
       {/* Main Content Wrapper with 20px margins */}
       <div className="mx-5">
-        <main className="py-8">
+        <main className="py-8" role="main">
         <AnimatePresence mode="wait">
           {/* Loading State */}
           {authState.isLoading && (
@@ -527,12 +537,12 @@ export default function App() {
               >
                 {decks.length === 0 ? (
                   <>
-                    <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-1">Let’s get started!</h2>
+                    <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-1">Let's get started!</h2>
                     <p className="text-text-secondary text-lg max-w-2xl mx-auto">Create your first deck or try a sample to see how IKNA works.</p>
                   </>
                 ) : (
                   <>
-                    <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-1">Your Progress</h2>
+                    <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-1">Welcome, {authState.user?.username || 'User'}!</h2>
                     <p className="text-text-secondary text-lg max-w-2xl mx-auto">Keep up the great work! Review your stats and keep learning.</p>
                   </>
                 )}
@@ -598,7 +608,7 @@ export default function App() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="text-2xl md:text-3xl font-bold ml-[30px]">Decks</h3>
-                    <label className="flex items-center space-x-2 text-base font-semibold cursor-pointer mr-[15px]">
+                    <label htmlFor="import-deck" className="flex items-center space-x-2 text-base font-semibold cursor-pointer mr-[15px]" aria-label="Import deck">
                     <input
                       type="file"
                       accept=".json"
@@ -674,6 +684,7 @@ export default function App() {
                                 whileTap={{ scale: 0.97 }}
                                 onClick={() => startStudy(deck.id)}
                                   className="btn-primary flex-1 flex items-center justify-center space-x-1 text-sm py-2"
+                                  aria-label="Study deck"
                               >
                                   <Play className="h-3 w-3" />
                                 <span>Study</span>
@@ -682,6 +693,7 @@ export default function App() {
                                 whileTap={{ scale: 0.97 }}
                                 onClick={() => handleExportDeck(deck)}
                                   className="btn-ghost p-1.5"
+                                  aria-label="Export deck"
                               >
                                   <Download className="h-3 w-3" />
                               </motion.button>
@@ -760,6 +772,7 @@ export default function App() {
                         setShowOnboarding(false);
                         localStorage.setItem('ikna_onboarded', 'true');
                       }}
+                      aria-label="Close onboarding modal"
                     >
                       Got it!
                     </button>
@@ -769,11 +782,7 @@ export default function App() {
             </motion.div>
           )}
 
-          {authState.isAuthenticated && view === 'home' && (
-            <div className="flex justify-center items-center w-full mt-12 mb-8">
-              <h1 className="text-5xl font-extrabold text-center">Welcome{authState.user?.username ? `, ${authState.user.username}` : ''}!</h1>
-            </div>
-          )}
+
 
           {authState.isAuthenticated && view === 'study' && selectedDeck && (
             <motion.div
@@ -817,32 +826,32 @@ export default function App() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
-                  style={{ backdropFilter: 'blur(2px)' }}
+                  style={{ backdropFilter: 'blur(2px)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
                 >
-                  <div className="card w-full max-w-2xl mx-4 flex flex-col items-center justify-center text-center p-16 rounded-3xl shadow-2xl bg-surface">
+                  <div className="card w-full max-w-2xl mx-4 flex flex-col items-center justify-center text-center p-16 rounded-3xl shadow-2xl bg-surface" style={{ transform: 'translate(-50%, -50%)', position: 'absolute', top: '50%', left: '50%' }}>
                     <Award className="h-20 w-20 text-yellow-400 mx-auto mb-6" />
                     <h3 className="text-4xl font-bold mb-4">Round Complete!</h3>
                     <p className="text-text-secondary mb-6">Great job! You've completed this round of study.</p>
-                    <div className="flex items-center justify-center space-x-6 mt-8 w-full">
+                    <div className="flex items-center justify-center space-x-3 mt-8 w-full">
                       <button
                         onClick={handleNextRound}
-                        className="btn-primary flex items-center space-x-2 px-10 py-4 text-2xl rounded-2xl mx-auto"
+                        className="btn-primary flex items-center space-x-2 px-8 py-3 text-xl rounded-xl mx-auto"
                       >
-                        <SkipForward className="h-6 w-6" />
+                        <SkipForward className="h-5 w-5" />
                         <span>Next Round</span>
                       </button>
                       <button
                         onClick={handleRestart}
-                        className="btn-ghost flex items-center space-x-2 px-10 py-4 text-2xl rounded-2xl mx-auto"
+                        className="btn-ghost flex items-center space-x-2 px-8 py-3 text-xl rounded-xl mx-auto"
                       >
-                        <RotateCcw className="h-6 w-6" />
+                        <RotateCcw className="h-5 w-5" />
                         <span>Restart</span>
                       </button>
                       <button
                         onClick={goHome}
-                        className="btn-ghost flex items-center space-x-2 px-10 py-4 text-2xl rounded-2xl mx-auto"
+                        className="btn-ghost flex items-center space-x-2 px-8 py-3 text-xl rounded-xl mx-auto"
                       >
-                        <Home className="h-6 w-6" />
+                        <Home className="h-5 w-5" />
                         <span>Return Home</span>
                       </button>
                     </div>
@@ -889,6 +898,7 @@ export default function App() {
                       <button
                         onClick={() => setShowAnswer(true)}
                         className="btn-primary flex items-center space-x-2"
+                        aria-label="Show answer"
                       >
                         <Eye className="h-4 w-4" />
                         <span>Show Answer</span>
@@ -898,6 +908,7 @@ export default function App() {
                         <button
                           onClick={() => handleRating('again')}
                           className="btn-danger flex items-center space-x-2"
+                          aria-label="Rate Again"
                         >
                           <AlertCircle className="h-4 w-4" />
                           <span>Again</span>
@@ -905,6 +916,7 @@ export default function App() {
                         <button
                           onClick={() => handleRating('hard')}
                           className="btn-secondary flex items-center space-x-2"
+                          aria-label="Rate Hard"
                         >
                           <Clock className="h-4 w-4" />
                           <span>Hard</span>
@@ -912,6 +924,7 @@ export default function App() {
                         <button
                           onClick={() => handleRating('good')}
                           className="btn-primary flex items-center space-x-2"
+                          aria-label="Rate Good"
                         >
                           <CheckCircle className="h-4 w-4" />
                           <span>Good</span>
@@ -919,6 +932,7 @@ export default function App() {
                         <button
                           onClick={() => handleRating('easy')}
                           className="btn-success flex items-center space-x-2"
+                          aria-label="Rate Easy"
                         >
                           <Star className="h-4 w-4" />
                           <span>Easy</span>
@@ -1037,6 +1051,7 @@ export default function App() {
                 <button
                   onClick={() => setEditingCard(null)}
                   className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+                  aria-label="Close edit card modal"
                 >
                   <X className="h-5 w-5" />
                 </button>
