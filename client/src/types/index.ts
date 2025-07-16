@@ -38,10 +38,10 @@ export interface Deck {
 export interface User {
   id: string;
   email: string;
-  name: string;
-  preferences: UserPreferences;
-  createdAt: number;
-  lastActive: number;
+  username: string;
+  is_verified: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface UserPreferences {

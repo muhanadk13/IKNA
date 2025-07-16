@@ -139,7 +139,8 @@ class ApiService {
   async generateFlashcards(request: GenerateRequest, token?: string): Promise<GenerateResponse> {
     try {
       console.log('Attempting to generate flashcards with API...');
-      const response = await this.request<{ success: boolean; data: GenerateResponse }>('/api/flashcards/generate', {
+      console.log('Request data:', request);
+      const response = await this.request<{ success: boolean; data: GenerateResponse }>('/generate', {
         method: 'POST',
         body: JSON.stringify(request),
       }, token);
@@ -151,10 +152,12 @@ class ApiService {
       }
     } catch (error) {
       console.error('API error details:', error);
-      if (error instanceof ApiError && error.code === 'NETWORK_ERROR') {
-        console.warn('API unavailable, using fallback flashcards:', error);
+      // Only use fallback for actual network errors, not API errors
+      if (error instanceof ApiError && error.code === 'NETWORK_ERROR' && error.status === 0) {
+        console.warn('Network connection failed, using fallback flashcards:', error);
         return generateFallbackFlashcards(request.notes);
       }
+      // For other errors (like 401, 500, etc.), throw the error so user knows what happened
       throw error;
     }
   }
@@ -187,10 +190,12 @@ class ApiService {
           throw error;
         }
         if (attempt === maxRetries) {
-          if (error instanceof ApiError && error.code === 'NETWORK_ERROR') {
+          // Only use fallback for actual network connection failures
+          if (error instanceof ApiError && error.code === 'NETWORK_ERROR' && error.status === 0) {
             console.warn('All retries failed due to network issues, using fallback flashcards');
             return generateFallbackFlashcards(request.notes);
           } else {
+            console.error('All retries failed, throwing last error:', lastError);
             throw lastError;
           }
         }

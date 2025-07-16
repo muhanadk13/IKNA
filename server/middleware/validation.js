@@ -106,9 +106,7 @@ const authSchemas = {
   register: Joi.object({
     email: Joi.string().email().required().max(255),
     username: Joi.string().alphanum().min(3).max(100).required(),
-    password: Joi.string().min(8).max(128).required()
-      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
-      .message('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
+    password: Joi.string().min(6).max(128).required()
   }),
 
   login: Joi.object({
@@ -118,16 +116,12 @@ const authSchemas = {
 
   changePassword: Joi.object({
     currentPassword: Joi.string().required(),
-    newPassword: Joi.string().min(8).max(128).required()
-      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
-      .message('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
+    newPassword: Joi.string().min(6).max(128).required()
   }),
 
   resetPassword: Joi.object({
     token: Joi.string().required(),
-    newPassword: Joi.string().min(8).max(128).required()
-      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
-      .message('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
+    newPassword: Joi.string().min(6).max(128).required()
   })
 };
 

@@ -55,13 +55,20 @@ const INITIAL_RATINGS: Record<Rating, number> = { again: 0, hard: 0, good: 0, ea
 const INITIAL_EASE_FACTOR = 2.5;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
+const fakeUser = {
+  id: "dev-user",
+  email: "dev@example.com",
+  username: "devuser",
+  is_verified: true,
+};
+
 export default function App() {
   // Authentication state
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
-    token: null,
+    token: localStorage.getItem('auth_token'),
     isAuthenticated: false,
-    isLoading: true
+    isLoading: false
   });
 
   const [notes, setNotes] = useState<string>('');
@@ -132,14 +139,37 @@ export default function App() {
     }
   }, [selectedDeck, setDecks]);
 
+  // Subscribe to authentication state changes
+  useEffect(() => {
+    const unsubscribe = authService.subscribe((state) => {
+      setAuthState(state);
+    });
+
+    return unsubscribe;
+  }, []);
+
   // Authentication handlers
   const handleAuthSuccess = () => {
     setView('home');
   };
 
-  const handleLogout = () => {
-    setView('home');
-    setDecks([]);
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      setView('home');
+      setDecks([]);
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force logout even if API call fails
+      setAuthState({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false
+      });
+      setView('home');
+      setDecks([]);
+    }
   };
 
   // Generate new deck from notes

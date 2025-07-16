@@ -36,7 +36,39 @@ app.use(helmet({
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost on any port
+    if (origin.match(/^http:\/\/localhost:\d+$/)) {
+      return callback(null, true);
+    }
+    
+    // Allow specific client URL if set
+    const allowedOrigins = [
+      process.env.CLIENT_URL || 'http://localhost:5173',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+      'http://localhost:5176',
+      'http://localhost:5177',
+      'http://localhost:5178',
+      'http://localhost:5179',
+      'http://localhost:5180',
+      'http://localhost:5181',
+      'http://localhost:5182',
+      'http://localhost:5183',
+      'http://localhost:5184',
+      'http://localhost:5185'
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
