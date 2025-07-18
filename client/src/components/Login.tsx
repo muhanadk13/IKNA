@@ -1,8 +1,5 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
 import { authService } from '../services/auth';
-import type { LoginCredentials } from '../types';
 
 interface LoginProps {
   onSwitchToRegister: () => void;
@@ -10,182 +7,140 @@ interface LoginProps {
   onLoginSuccess: () => void;
 }
 
-export default function Login({ onSwitchToRegister, onSwitchToForgotPassword, onLoginSuccess }: LoginProps) {
-  const [credentials, setCredentials] = useState<LoginCredentials>({
-    email: '',
-    password: ''
-  });
+const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSwitchToForgotPassword, onLoginSuccess }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setIsLoading(true);
 
     try {
-      await authService.login(credentials);
-      setSuccess('Login successful! Redirecting...');
-      setTimeout(() => {
-        onLoginSuccess();
-      }, 1000);
-    } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      await authService.login({ email, password });
+      onLoginSuccess();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (field: keyof LoginCredentials, value: string) => {
-    setCredentials(prev => ({ ...prev, [field]: value }));
-    if (error) setError('');
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="w-full max-w-md mx-auto"
-    >
-      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-          <p className="text-gray-600">Sign in to continue your learning journey</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+          <p className="text-white/80 text-sm">Sign in to continue...</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6" role="form" aria-label="Login form">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Field */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
+            <label htmlFor="email" className="block text-white text-sm font-medium mb-2">
+              Email
             </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                id="email"
-                type="email"
-                value={credentials.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                placeholder="Enter your email"
-                required
-                disabled={isLoading}
-                aria-label="Email address"
-              />
-            </div>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@email.com"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              required
+            />
           </div>
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-white text-sm font-medium mb-2">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                value={credentials.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full pr-12 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
-                disabled={isLoading}
-                aria-label="Password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                disabled={isLoading}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors"
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {showPassword ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  )}
+                </svg>
               </button>
             </div>
           </div>
 
-          {/* Error/Success Messages */}
+          {/* Error Message */}
           {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center p-3 bg-red-50 border border-red-200 rounded-lg"
-            >
-              <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
-              <span className="text-sm text-red-700">{error}</span>
-            </motion.div>
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
           )}
 
-          {success && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center p-3 bg-green-50 border border-green-200 rounded-lg"
-            >
-              <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-              <span className="text-sm text-green-700">{success}</span>
-            </motion.div>
-          )}
+          {/* Separator */}
+          <div className="border-t border-gray-600 my-6"></div>
 
-          {/* Submit Button */}
+          {/* Sign In Button */}
           <button
             type="submit"
-            disabled={isLoading || !credentials.email || !credentials.password}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Sign in"
+            disabled={isLoading}
+            className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-purple-900 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Signing in...
-              </div>
-            ) : (
-              'Sign In'
-            )}
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
 
-          {/* Forgot Password Link */}
-          <div className="text-center">
+          {/* Forgot Password Button */}
+          <div className="text-right">
             <button
               type="button"
               onClick={onSwitchToForgotPassword}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-              disabled={isLoading}
-              aria-label="Forgot your password?"
+              className="inline-block bg-gray-600 hover:bg-gray-500 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm"
             >
-              Forgot your password?
+              Forgot password?
             </button>
           </div>
+
+          {/* Separator */}
+          <div className="flex items-center my-6">
+            <div className="flex-1 border-t border-gray-600"></div>
+            <span className="px-4 text-gray-400 text-sm">or</span>
+            <div className="flex-1 border-t border-gray-600"></div>
+          </div>
+
+          {/* Sign Up Link */}
+          <div className="text-center">
+            <p className="text-white text-sm">
+              Don't have an account?{' '}
+              <button
+                type="button"
+                onClick={onSwitchToRegister}
+                className="text-purple-400 hover:text-purple-300 underline font-medium"
+              >
+                Sign up
+              </button>
+            </p>
+          </div>
         </form>
-
-        {/* Divider */}
-        <div className="my-6 flex items-center">
-          <div className="flex-1 border-t border-gray-300"></div>
-          <span className="px-4 text-sm text-gray-500">or</span>
-          <div className="flex-1 border-t border-gray-300"></div>
-        </div>
-
-        {/* Register Link */}
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
-            <button
-              type="button"
-              onClick={onSwitchToRegister}
-              className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-              disabled={isLoading}
-              aria-label="Sign up"
-            >
-              Sign up
-            </button>
-          </p>
-        </div>
       </div>
-    </motion.div>
+    </div>
   );
-} 
+};
+
+export default Login; 

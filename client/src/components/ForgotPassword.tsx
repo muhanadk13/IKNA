@@ -36,102 +36,92 @@ export default function ForgotPassword({ onSwitchToLogin }: ForgotPasswordProps)
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="w-full max-w-md mx-auto"
-    >
-      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Reset Password</h2>
-          <p className="text-gray-600">Enter your email to receive reset instructions</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6" role="form" aria-label="Forgot password form">
-          {/* Email Field */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => handleEmailChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                placeholder="Enter your email"
-                required
-                disabled={isLoading}
-                aria-label="Email address input"
-              />
-            </div>
-          </div>
-
-          {/* Error/Success Messages */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center p-3 bg-red-50 border border-red-200 rounded-lg"
-            >
-              <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
-              <span className="text-sm text-red-700">{error}</span>
-            </motion.div>
-          )}
-
-          {success && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center p-3 bg-green-50 border border-green-200 rounded-lg"
-            >
-              <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-              <span className="text-sm text-green-700">{success}</span>
-            </motion.div>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading || !email}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Send reset email button"
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Sending email...
-              </div>
-            ) : (
-              'Send Reset Email'
-            )}
-          </button>
-
-          {/* Back to Login */}
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={onSwitchToLogin}
-              className="flex items-center justify-center mx-auto text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-              disabled={isLoading}
-              aria-label="Back to Sign In"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Sign In
-            </button>
-          </div>
-        </form>
-
-        {/* Help Text */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <p className="text-sm text-blue-700">
-            <strong>Note:</strong> If you don't receive an email within a few minutes, check your spam folder or try again.
-          </p>
-        </div>
+    <div className="bg-white rounded-xl shadow-sm p-8">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Reset password</h2>
+        <p className="text-gray-600">Enter your email to receive reset instructions</p>
       </div>
-    </motion.div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Email Field */}
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-3">
+            Email
+          </label>
+          <div className="relative">
+            <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 placeholder-gray-400 bg-gray-50 hover:bg-white focus:bg-white"
+              placeholder="Enter your email"
+              required
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+
+        {/* Error/Success Messages */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-start p-4 bg-red-50 rounded-xl"
+          >
+            <AlertCircle className="h-5 w-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
+            <span className="text-sm text-red-700">{error}</span>
+          </motion.div>
+        )}
+
+        {success && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-start p-4 bg-green-50 rounded-xl"
+          >
+            <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
+            <span className="text-sm text-green-700">{success}</span>
+          </motion.div>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={isLoading || !email}
+          className="w-full bg-indigo-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+        >
+          {isLoading ? (
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+              Sending email...
+            </div>
+          ) : (
+            'Send reset email'
+          )}
+        </button>
+      </form>
+
+      {/* Back to Login */}
+      <div className="mt-8 text-center">
+        <button
+          type="button"
+          onClick={onSwitchToLogin}
+          className="flex items-center justify-center mx-auto text-sm text-indigo-600 hover:text-indigo-700 font-semibold transition-colors"
+          disabled={isLoading}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to sign in
+        </button>
+      </div>
+
+      {/* Help Text */}
+      <div className="mt-6 p-4 bg-indigo-50 rounded-xl">
+        <p className="text-sm text-indigo-700">
+          <strong>Note:</strong> If you don't receive an email within a few minutes, check your spam folder or try again.
+        </p>
+      </div>
+    </div>
   );
 } 
